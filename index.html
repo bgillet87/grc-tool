@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Control Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Control Register">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#eef0ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171d22" media="(prefers-color-scheme: dark)">
+<style>
+  :root {
+    --ink: #1c2b39;
+    --paper: #eef0ea;
+    --paper-raised: #e2e5da;
+    --rule: #c7ccbc;
+    --steel: #57636f;
+    --ochre: #b8802f;
+    --ochre-bg: #f3e6d2;
+    --forest: #3f6b4a;
+    --forest-bg: #dfe8e0;
+    --rust: #9c3d2e;
+    --rust-bg: #ecdcd6;
+    --slate-bg: #dde1da;
+    --focus: #2f6fa8;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8ebe3;
+      --paper: #171d22;
+      --paper-raised: #1f262c;
+      --rule: #333d40;
+      --steel: #9aa7ac;
+      --ochre: #d9a256;
+      --ochre-bg: #3a2f1c;
+      --forest: #7fb08d;
+      --forest-bg: #1f3227;
+      --rust: #d98a78;
+      --rust-bg: #3a2420;
+      --slate-bg: #232b2f;
+      --focus: #6fa8d8;
+    }
+  }
+  :root[data-theme="dark"] {
+      --ink: #e8ebe3;
+      --paper: #171d22;
+      --paper-raised: #1f262c;
+      --rule: #333d40;
+      --steel: #9aa7ac;
+      --ochre: #d9a256;
+      --ochre-bg: #3a2f1c;
+      --forest: #7fb08d;
+      --forest-bg: #1f3227;
+      --rust: #d98a78;
+      --rust-bg: #3a2420;
+      --slate-bg: #232b2f;
+      --focus: #6fa8d8;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--ochre-bg); }
+  .app { max-width: 1180px; margin: 0 auto; padding: 0 20px 60px; }
+
+  header.top {
+    padding: 22px 0 16px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 26px;
+    margin: 0 0 2px;
+    letter-spacing: -0.01em;
+  }
+  .brand p { margin: 0; color: var(--steel); font-size: 13px; }
+  .theme-toggle {
+    background: none; border: 1px solid var(--rule); color: var(--steel);
+    border-radius: 3px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+    font-family: inherit;
+  }
+  .theme-toggle:hover { border-color: var(--steel); }
+
+  .framework-bar {
+    display: flex; align-items: center; gap: 4px; margin-top: 18px;
+    border-bottom: 1px solid var(--rule); flex-wrap: wrap; row-gap: 4px;
+  }
+  .fw-badge {
+    display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+    padding: 1px 6px; border-radius: 3px; margin-right: 6px; color: #fff; vertical-align: middle;
+  }
+  .fw-badge.iso27001 { background: var(--steel); }
+  .fw-badge.pipeda { background: var(--ochre); }
+  .fw-badge.nist-privacy { background: var(--forest); }
+  .fw-badge.itsg33 { background: var(--focus); }
+  .fw-tab {
+    background: none; border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px; color: var(--steel); padding: 10px 4px; margin-right: 22px;
+    border-bottom: 2px solid transparent; position: relative; top: 1px;
+  }
+  .fw-tab.active { color: var(--ink); border-bottom-color: var(--ochre); font-weight: 500; }
+
+  .dash {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--rule); border: 1px solid var(--rule); margin: 20px 0;
+  }
+  .dash-cell { background: var(--paper); padding: 14px 16px; }
+  .dash-cell .num { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; display: block; }
+  .dash-cell .lbl { font-size: 11.5px; color: var(--steel); text-transform: uppercase; letter-spacing: 0.04em; }
+  .dash-cell.met .num { color: var(--forest); }
+  .dash-cell.gap .num { color: var(--ochre); }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+  .toolbar input[type="search"] {
+    flex: 1; min-width: 180px; padding: 9px 12px; border: 1px solid var(--rule);
+    background: var(--paper-raised); color: var(--ink); border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+  }
+  .toolbar select {
+    padding: 9px 10px; border: 1px solid var(--rule); background: var(--paper-raised);
+    color: var(--ink); border-radius: 3px; font-family: inherit; font-size: 13px;
+  }
+  .toolbar button.action {
+    padding: 9px 14px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+    border-radius: 3px; font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+  .toolbar button.action.secondary { background: none; color: var(--ink); }
+  .toolbar button.action:hover { opacity: 0.85; }
+
+  .theme-rail { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+  .theme-chip {
+    border: 1px solid var(--rule); background: var(--paper-raised); color: var(--steel);
+    border-radius: 999px; padding: 5px 12px; font-size: 12.5px; cursor: pointer;
+  }
+  .theme-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .register { border-top: 1px solid var(--rule); }
+  .row {
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 74px 1fr 130px 22px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 4px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .row:hover { background: var(--paper-raised); }
+  .row .cid { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--steel); }
+  .row .ctitle { font-size: 14px; }
+  .row .ctitle .theme-label { display: block; font-size: 11px; color: var(--steel); margin-top: 2px; }
+  .row .chev { text-align: right; color: var(--steel); transition: transform 0.15s ease; }
+  .row.open .chev { transform: rotate(90deg); }
+
+  .status-pill {
+    font-size: 11px; padding: 3px 9px; border-radius: 999px; text-align: center;
+    white-space: nowrap; font-weight: 500;
+  }
+  .status-pill.not-started { background: var(--slate-bg); color: var(--steel); }
+  .status-pill.in-progress { background: var(--ochre-bg); color: var(--ochre); }
+  .status-pill.implemented { background: var(--forest-bg); color: var(--forest); }
+  .status-pill.not-applicable { background: var(--rust-bg); color: var(--rust); }
+
+  .row.not-started { border-left-color: var(--rule); }
+  .row.in-progress { border-left-color: var(--ochre); }
+  .row.implemented { border-left-color: var(--forest); }
+  .row.not-applicable { border-left-color: var(--rust); }
+
+  .detail {
+    display: none; padding: 4px 4px 20px 4px; border-bottom: 1px solid var(--rule);
+    background: var(--paper-raised);
+  }
+  .detail.open { display: block; }
+  .detail-inner { padding: 12px 12px 4px; max-width: 760px; }
+  .detail p.desc { margin: 0 0 10px; font-size: 13.5px; color: var(--ink); }
+  .detail p.guidance { margin: 0 0 16px; font-size: 12.5px; color: var(--steel); }
+  .detail p.guidance:before { content: "Where to look — "; font-weight: 500; color: var(--steel); }
+  .field-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 14px; }
+  .field { flex: 1; min-width: 180px; }
+  .field label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--steel); margin-bottom: 5px; }
+  .field select, .field input[type="date"] {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--rule); background: var(--paper);
+    color: var(--ink); border-radius: 3px; font-family: inherit; font-size: 13px;
+  }
+  .field textarea {
+    width: 100%; min-height: 64px; padding: 8px 9px; border: 1px solid var(--rule);
+    background: var(--paper); color: var(--ink); border-radius: 3px; font-family: inherit;
+    font-size: 13px; resize: vertical;
+  }
+  .saved-tick { font-size: 11px; color: var(--forest); margin-left: 8px; opacity: 0; transition: opacity 0.3s; }
+  .saved-tick.show { opacity: 1; }
+
+  footer.appfoot { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--steel); font-size: 12px; }
+  .appfoot-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+  .appfoot-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .appfoot-actions button { padding: 5px 10px; font-size: 11.5px; }
+
+  @media (max-width: 640px) {
+    .row { grid-template-columns: 56px 1fr 20px; }
+    .row .status-pill { display: none; }
+    .row.not-started .chev, .row.in-progress .chev { color: var(--steel); }
+    .dash { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media print {
+    .toolbar, .theme-toggle, .theme-rail, header .fw-tab:not(.active), .row .chev, .page-nav, .wizard-nav-buttons { display: none !important; }
+    .detail { display: block !important; }
+    body { background: #fff; color: #000; }
+  }
+
+  .page-nav { display: flex; gap: 22px; margin-top: 16px; }
+  .page-nav button {
+    background: none; border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14.5px; color: var(--steel); padding: 8px 0 12px; border-bottom: 2px solid transparent;
+  }
+  .page-nav button.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
+
+  .doctype-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 20px; }
+  .doctype-card { background: var(--paper); padding: 18px 18px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+  .doctype-card:hover { background: var(--paper-raised); }
+  .doctype-card .dt-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ochre); text-transform: uppercase; letter-spacing: 0.03em; }
+  .doctype-card h3 { font-family: 'Fraunces', serif; font-size: 17px; margin: 0; font-weight: 600; }
+  .doctype-card p { margin: 0; font-size: 12.5px; color: var(--steel); flex: 1; }
+  .doctype-card .dt-status { font-size: 11.5px; color: var(--forest); margin-top: 4px; }
+
+  .wizard-head { margin: 24px 0 6px; }
+  .wizard-head .back-link { background: none; border: none; color: var(--steel); font-size: 12.5px; cursor: pointer; padding: 0; margin-bottom: 10px; }
+  .wizard-head h2 { font-family: 'Fraunces', serif; font-size: 22px; margin: 0 0 4px; }
+  .wizard-progress { font-size: 12px; color: var(--steel); font-family: 'IBM Plex Mono', monospace; margin-bottom: 18px; }
+  .wizard-bar { height: 3px; background: var(--rule); margin-bottom: 24px; }
+  .wizard-bar-fill { height: 100%; background: var(--ochre); transition: width 0.2s ease; }
+
+  .wizard-section h3 { font-family: 'Fraunces', serif; font-size: 18px; margin: 0 0 16px; }
+  .w-field { margin-bottom: 18px; max-width: 640px; }
+  .w-field label { display: block; font-size: 12.5px; color: var(--steel); margin-bottom: 6px; }
+  .w-field input[type="text"], .w-field input[type="date"], .w-field select, .w-field textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--rule); background: var(--paper-raised);
+    color: var(--ink); border-radius: 3px; font-family: inherit; font-size: 13.5px;
+  }
+  .w-field textarea { min-height: 84px; resize: vertical; }
+
+  .w-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .w-table th { text-align: left; font-size: 11px; color: var(--steel); text-transform: uppercase; letter-spacing: 0.02em; padding: 0 8px 6px 0; border-bottom: 1px solid var(--rule); }
+  .w-table td { padding: 4px 8px 4px 0; vertical-align: top; }
+  .w-table input, .w-table select { width: 100%; padding: 6px 8px; border: 1px solid var(--rule); background: var(--paper-raised); color: var(--ink); border-radius: 3px; font-family: inherit; font-size: 12.5px; }
+  .w-table .rm-row { background: none; border: none; color: var(--rust); cursor: pointer; font-size: 15px; padding: 4px; }
+  .w-add-row { border: 1px dashed var(--rule); background: none; color: var(--steel); padding: 7px 12px; border-radius: 3px; cursor: pointer; font-size: 12.5px; margin-bottom: 20px; }
+
+  .wizard-nav-buttons { display: flex; justify-content: space-between; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--rule); }
+  .wizard-nav-buttons button { padding: 9px 16px; border-radius: 3px; font-family: inherit; font-size: 13.5px; cursor: pointer; }
+  .btn-primary { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
+  .btn-ghost { background: none; color: var(--ink); border: 1px solid var(--rule); }
+
+  .soa-table-wrap { max-height: 480px; overflow-y: auto; border: 1px solid var(--rule); margin-bottom: 10px; }
+  .soa-row { display: grid; grid-template-columns: 62px 1fr 90px 1fr; gap: 10px; padding: 9px 10px; border-bottom: 1px solid var(--rule); align-items: start; font-size: 12.5px; }
+  .soa-row .soa-id { font-family: 'IBM Plex Mono', monospace; color: var(--steel); padding-top: 6px; }
+  .soa-row .soa-title { padding-top: 6px; }
+  .soa-row select { padding: 6px 8px; border: 1px solid var(--rule); background: var(--paper-raised); color: var(--ink); border-radius: 3px; font-family: inherit; font-size: 12px; }
+  .soa-row textarea { width: 100%; min-height: 34px; padding: 6px 8px; border: 1px solid var(--rule); background: var(--paper-raised); color: var(--ink); border-radius: 3px; font-family: inherit; font-size: 12px; resize: vertical; }
+
+  .preview-toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+  .doc-preview { background: var(--paper-raised); border: 1px solid var(--rule); padding: 30px 34px; max-width: 760px; }
+  .doc-preview h1 { font-family: 'Fraunces', serif; font-size: 22px; margin-top: 0; }
+  .doc-preview h2 { font-family: 'Fraunces', serif; font-size: 16.5px; margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 16px; }
+  .doc-preview p { font-size: 13.5px; margin: 8px 0; }
+  .doc-preview table { border-collapse: collapse; width: 100%; margin: 10px 0 4px; }
+  .doc-preview th, .doc-preview td { border: 1px solid var(--rule); padding: 6px 8px; font-size: 12px; text-align: left; vertical-align: top; }
+  .doc-preview th { background: var(--slate-bg); }
+
+  .tpl-editor-wrap { margin-top: 18px; }
+  .tpl-editor-wrap textarea { width: 100%; min-height: 320px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; padding: 12px; border: 1px solid var(--rule); background: var(--paper-raised); color: var(--ink); border-radius: 3px; }
+  .tpl-tokens { font-size: 11.5px; color: var(--steel); margin: 8px 0 14px; font-family: 'IBM Plex Mono', monospace; line-height: 1.7; }
+  .tpl-tokens span { background: var(--slate-bg); padding: 1px 5px; border-radius: 2px; margin-right: 4px; }
+
+  .guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 20px; }
+  .guide-card { background: var(--paper); padding: 18px 18px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+  .guide-card:hover { background: var(--paper-raised); }
+  .guide-card .g-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ochre); }
+  .guide-card h3 { font-family: 'Fraunces', serif; font-size: 16.5px; margin: 0; font-weight: 600; }
+  .guide-card p { margin: 0; font-size: 12.5px; color: var(--steel); flex: 1; }
+  .guide-card .g-status { font-size: 11.5px; margin-top: 4px; }
+  .guide-card .g-status.done { color: var(--forest); }
+  .guide-card .g-status.partial { color: var(--ochre); }
+
+  .guide-intro { max-width: 640px; color: var(--steel); font-size: 13px; margin: 18px 0 4px; }
+  .guide-progress-bar { height: 3px; background: var(--rule); margin: 14px 0 4px; }
+  .guide-progress-fill { height: 100%; background: var(--forest); }
+
+  .topic-body { max-width: 680px; }
+  .topic-body p { font-size: 14px; line-height: 1.65; margin: 0 0 14px; }
+  .topic-body strong { color: var(--ink); }
+
+  .quiz-block { max-width: 680px; margin-top: 28px; border-top: 1px solid var(--rule); padding-top: 20px; }
+  .quiz-block h3 { font-family: 'Fraunces', serif; font-size: 17px; margin: 0 0 16px; }
+  .quiz-q { margin-bottom: 22px; }
+  .quiz-q .q-text { font-size: 13.5px; margin-bottom: 10px; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 8px; padding: 7px 9px; border: 1px solid var(--rule); border-radius: 3px; margin-bottom: 6px; cursor: pointer; font-size: 13px; background: var(--paper-raised); }
+  .quiz-option:hover { border-color: var(--steel); }
+  .quiz-option input { margin-top: 2px; }
+  .quiz-option.correct { border-color: var(--forest); background: var(--forest-bg); }
+  .quiz-option.incorrect { border-color: var(--rust); background: var(--rust-bg); }
+  .quiz-check { padding: 6px 12px; border: 1px solid var(--ink); background: none; color: var(--ink); border-radius: 3px; font-size: 12.5px; cursor: pointer; margin-top: 2px; }
+  .quiz-feedback { font-size: 12.5px; margin-top: 8px; padding: 8px 10px; border-radius: 3px; background: var(--slate-bg); color: var(--steel); }
+  .quiz-feedback.correct { background: var(--forest-bg); color: var(--forest); }
+  .quiz-feedback.incorrect { background: var(--rust-bg); color: var(--rust); }
+  .quiz-score { font-size: 13px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); color: var(--steel); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Control Register</h1>
+      <p>Framework audit &amp; evidence tracker</p>
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button">Dark mode</button>
+  </header>
+
+  <nav class="page-nav" id="pageNav">
+    <button data-page="register" class="active" type="button">Control Register</button>
+    <button data-page="builder" type="button">Document Builder</button>
+    <button data-page="fieldguide" type="button">Field Guide</button>
+  </nav>
+
+  <div id="page-register">
+    <div class="framework-bar" id="fwBar"></div>
+
+    <div class="dash" id="dash"></div>
+
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Search by ID or title…">
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option value="not-started">Not started</option>
+        <option value="in-progress">In progress</option>
+        <option value="implemented">Implemented</option>
+        <option value="not-applicable">Not applicable</option>
+      </select>
+      <button class="action secondary" id="exportCsv" type="button">Export CSV</button>
+      <button class="action" id="printReport" type="button">Print report</button>
+    </div>
+
+    <div class="theme-rail" id="themeRail"></div>
+
+    <div class="register" id="register"></div>
+  </div>
+
+  <div id="page-builder" style="display:none;"></div>
+
+  <div id="page-fieldguide" style="display:none;"></div>
+
+  <footer class="appfoot">
+    <div class="appfoot-row">
+      <span>Data is stored only in this browser. Nothing here is sent anywhere.</span>
+      <span class="appfoot-actions">
+        <button class="action secondary" id="backupBtn" type="button">Download backup</button>
+        <button class="action secondary" id="restoreBtn" type="button">Restore backup</button>
+        <input type="file" id="restoreFile" accept=".json" style="display:none;">
+      </span>
+    </div>
+  </footer>
+</div>
+
+<script id="framework-data" type="application/json">{"iso27001": {"name": "ISO/IEC 27001:2022 \u2014 Annex A", "controls": [{"id": "5.1", "theme": "Organizational", "title": "Policies for information security", "desc": "Top-level policy set and topic-specific policies exist, are approved, and are communicated.", "guidance": "Locate the current policy document(s), the approval record, and evidence of distribution to staff.", "domain": "Governance & Policy"}, {"id": "5.2", "theme": "Organizational", "title": "Information security roles and responsibilities", "desc": "Security roles are defined and allocated to named people or positions.", "guidance": "Check an org chart or RACI showing who owns which security responsibility.", "domain": "Governance & Policy"}, {"id": "5.3", "theme": "Organizational", "title": "Segregation of duties", "desc": "Conflicting duties (e.g. requesting vs approving access) are split between people.", "guidance": "Review access-approval workflows for a single point of control.", "domain": "Governance & Policy"}, {"id": "5.4", "theme": "Organizational", "title": "Management responsibilities", "desc": "Managers actively require staff to follow security policy in daily work.", "guidance": "Look for manager sign-off steps or security objectives in performance reviews.", "domain": "Governance & Policy"}, {"id": "5.5", "theme": "Organizational", "title": "Contact with authorities", "desc": "A defined channel exists for contacting regulators, law enforcement, or CERTs.", "guidance": "Confirm a contact list and an example of it being used or tested.", "domain": "Compliance, Audit & Legal"}, {"id": "5.6", "theme": "Organizational", "title": "Contact with special interest groups", "desc": "Membership or channels with security forums/associations are maintained.", "guidance": "Check for ISAC memberships, vendor advisories subscriptions, or professional group ties.", "domain": "Governance & Policy"}, {"id": "5.7", "theme": "Organizational", "title": "Threat intelligence", "desc": "Information on emerging threats is collected and used to inform decisions.", "guidance": "Look for a threat feed, advisory review process, or briefing cadence.", "domain": "Risk Management"}, {"id": "5.8", "theme": "Organizational", "title": "Information security in project management", "desc": "Security is a standing checkpoint in the project lifecycle.", "guidance": "Check a PM template or gate that requires a security review.", "domain": "Governance & Policy"}, {"id": "5.9", "theme": "Organizational", "title": "Inventory of information and other associated assets", "desc": "An up-to-date register of assets and their owners exists.", "guidance": "Pull the asset register and confirm an owner field and a last-updated date.", "domain": "Asset Management & Classification"}, {"id": "5.10", "theme": "Organizational", "title": "Acceptable use of information and other associated assets", "desc": "Rules for acceptable use of assets are documented and acknowledged.", "guidance": "Find the AUP and evidence staff have signed or accepted it.", "domain": "Asset Management & Classification"}, {"id": "5.11", "theme": "Organizational", "title": "Return of assets", "desc": "A process ensures assets are returned when someone leaves or changes role.", "guidance": "Check the offboarding checklist for an asset-return step.", "domain": "Asset Management & Classification"}, {"id": "5.12", "theme": "Organizational", "title": "Classification of information", "desc": "A classification scheme (e.g. public/internal/confidential) is defined and applied.", "guidance": "Look for the classification scheme document and labelled examples.", "domain": "Asset Management & Classification"}, {"id": "5.13", "theme": "Organizational", "title": "Labelling of information", "desc": "Classified information is marked consistently with the classification scheme.", "guidance": "Sample a few documents/systems for classification labels.", "domain": "Asset Management & Classification"}, {"id": "5.14", "theme": "Organizational", "title": "Information transfer", "desc": "Rules govern how information moves internally, externally, and physically.", "guidance": "Check transfer agreements or secure-transfer tooling in use.", "domain": "Network & Communications Security"}, {"id": "5.15", "theme": "Organizational", "title": "Access control", "desc": "A documented access control policy governs who can reach what.", "guidance": "Locate the access control policy and its review date.", "domain": "Access Control & Identity"}, {"id": "5.16", "theme": "Organizational", "title": "Identity management", "desc": "A lifecycle process manages the creation and removal of identities.", "guidance": "Check joiner/mover/leaver identity procedures and system logs.", "domain": "Access Control & Identity"}, {"id": "5.17", "theme": "Organizational", "title": "Authentication information", "desc": "Secrets like passwords are issued, stored and rotated securely.", "guidance": "Review password/secret handling procedures and any vault tooling.", "domain": "Access Control & Identity"}, {"id": "5.18", "theme": "Organizational", "title": "Access rights", "desc": "Access is granted, reviewed and revoked based on need.", "guidance": "Pull a recent access review/recertification record.", "domain": "Access Control & Identity"}, {"id": "5.19", "theme": "Organizational", "title": "Information security in supplier relationships", "desc": "Security expectations are set before onboarding a supplier.", "guidance": "Check the supplier risk assessment or due-diligence questionnaire.", "domain": "Supplier / Third-Party Management"}, {"id": "5.20", "theme": "Organizational", "title": "Addressing information security within supplier agreements", "desc": "Security terms are written into supplier contracts.", "guidance": "Sample a contract for a security/data-protection clause.", "domain": "Supplier / Third-Party Management"}, {"id": "5.21", "theme": "Organizational", "title": "Managing information security in the ICT supply chain", "desc": "Risk from sub-suppliers and the technology supply chain is managed.", "guidance": "Check whether supplier assessments extend to their own key suppliers.", "domain": "Supplier / Third-Party Management"}, {"id": "5.22", "theme": "Organizational", "title": "Monitoring, review and change management of supplier services", "desc": "Supplier performance and changes are tracked over the relationship.", "guidance": "Look for periodic supplier review meetings or scorecards.", "domain": "Supplier / Third-Party Management"}, {"id": "5.23", "theme": "Organizational", "title": "Information security for use of cloud services", "desc": "Cloud use follows defined security requirements.", "guidance": "Check a cloud security policy and shared-responsibility understanding for key services.", "domain": "Supplier / Third-Party Management"}, {"id": "5.24", "theme": "Organizational", "title": "Information security incident management planning and preparation", "desc": "Roles, procedures and tools for handling incidents are defined in advance.", "guidance": "Locate the incident response plan and its last test/tabletop date.", "domain": "Incident Response"}, {"id": "5.25", "theme": "Organizational", "title": "Assessment and decision on information security events", "desc": "Events are triaged to decide if they are incidents.", "guidance": "Check triage criteria and an example logged decision.", "domain": "Incident Response"}, {"id": "5.26", "theme": "Organizational", "title": "Response to information security incidents", "desc": "A documented process is followed to contain and resolve incidents.", "guidance": "Review a closed incident ticket for the steps taken.", "domain": "Incident Response"}, {"id": "5.27", "theme": "Organizational", "title": "Learning from information security incidents", "desc": "Lessons from incidents feed back into controls.", "guidance": "Look for a post-incident review with follow-up actions.", "domain": "Incident Response"}, {"id": "5.28", "theme": "Organizational", "title": "Collection of evidence", "desc": "Evidence from incidents is captured in a way that holds up later.", "guidance": "Check chain-of-custody procedures for incident evidence.", "domain": "Incident Response"}, {"id": "5.29", "theme": "Organizational", "title": "Information security during disruption", "desc": "Security is maintained during outages or business disruption.", "guidance": "Check whether the BCP/DRP addresses security continuity, not just availability.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "5.30", "theme": "Organizational", "title": "ICT readiness for business continuity", "desc": "ICT systems and plans support the required continuity level.", "guidance": "Check DR test results against recovery time objectives.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "5.31", "theme": "Organizational", "title": "Legal, statutory, regulatory and contractual requirements", "desc": "Applicable legal/regulatory obligations are identified and tracked.", "guidance": "Pull the compliance obligations register.", "domain": "Compliance, Audit & Legal"}, {"id": "5.32", "theme": "Organizational", "title": "Intellectual property rights", "desc": "IP rights (yours and third parties') are respected and protected.", "guidance": "Check software licensing records and IP-related contract clauses.", "domain": "Compliance, Audit & Legal"}, {"id": "5.33", "theme": "Organizational", "title": "Protection of records", "desc": "Records are protected from loss, tampering and unauthorized access per retention needs.", "guidance": "Check the records retention schedule and storage protections.", "domain": "Compliance, Audit & Legal"}, {"id": "5.34", "theme": "Organizational", "title": "Privacy and protection of PII", "desc": "PII is identified and handled per applicable privacy law.", "guidance": "Cross-reference with a data map or PIA for personal information flows.", "domain": "Privacy Rights & Transparency"}, {"id": "5.35", "theme": "Organizational", "title": "Independent review of information security", "desc": "Security is periodically reviewed by an independent party.", "guidance": "Check the most recent internal audit or external assessment report.", "domain": "Compliance, Audit & Legal"}, {"id": "5.36", "theme": "Organizational", "title": "Compliance with policies, rules and standards for information security", "desc": "Adherence to internal policy is regularly checked.", "guidance": "Look for a compliance-checking or self-attestation process.", "domain": "Compliance, Audit & Legal"}, {"id": "5.37", "theme": "Organizational", "title": "Documented operating procedures", "desc": "Operating procedures for IT/security tasks are written down and kept current.", "guidance": "Sample a runbook or SOP and check its last review date.", "domain": "Operations & Change Management"}, {"id": "6.1", "theme": "People", "title": "Screening", "desc": "Background checks are performed before hiring, proportionate to the role.", "guidance": "Check HR's screening procedure and a sample file.", "domain": "HR / Personnel Security"}, {"id": "6.2", "theme": "People", "title": "Terms and conditions of employment", "desc": "Security responsibilities are stated in employment contracts.", "guidance": "Check a contract template for a security clause.", "domain": "HR / Personnel Security"}, {"id": "6.3", "theme": "People", "title": "Information security awareness, education and training", "desc": "Staff receive regular, role-appropriate security training.", "guidance": "Pull training completion records and the curriculum.", "domain": "Awareness & Training"}, {"id": "6.4", "theme": "People", "title": "Disciplinary process", "desc": "A formal process exists for responding to policy violations.", "guidance": "Check the HR disciplinary policy and, if used, an anonymized case.", "domain": "HR / Personnel Security"}, {"id": "6.5", "theme": "People", "title": "Responsibilities after termination or change of employment", "desc": "Ongoing obligations (confidentiality, etc.) survive role change or exit.", "guidance": "Check exit paperwork for restated post-employment obligations.", "domain": "HR / Personnel Security"}, {"id": "6.6", "theme": "People", "title": "Confidentiality or non-disclosure agreements", "desc": "NDAs are used and reviewed periodically.", "guidance": "Check the NDA template and its last legal review date.", "domain": "HR / Personnel Security"}, {"id": "6.7", "theme": "People", "title": "Remote working", "desc": "Security requirements for remote/hybrid work are defined.", "guidance": "Check the remote work policy covering device and network security.", "domain": "Access Control & Identity"}, {"id": "6.8", "theme": "People", "title": "Information security event reporting", "desc": "Staff know how and are encouraged to report suspicious events.", "guidance": "Check the reporting channel and recent report volume/trend.", "domain": "Incident Response"}, {"id": "7.1", "theme": "Physical", "title": "Physical security perimeters", "desc": "Defined perimeters (e.g. walls, badge doors) protect areas with sensitive assets.", "guidance": "Walk the perimeter or review the facility security plan.", "domain": "Physical & Environmental Security"}, {"id": "7.2", "theme": "Physical", "title": "Physical entry", "desc": "Entry controls (badges, visitor sign-in) restrict access to authorized people.", "guidance": "Check visitor logs and badge-access reports.", "domain": "Physical & Environmental Security"}, {"id": "7.3", "theme": "Physical", "title": "Securing offices, rooms and facilities", "desc": "Rooms holding sensitive assets have additional physical protection.", "guidance": "Check server room or records room access restrictions.", "domain": "Physical & Environmental Security"}, {"id": "7.4", "theme": "Physical", "title": "Physical security monitoring", "desc": "Premises are monitored (e.g. CCTV, alarms) for unauthorized access.", "guidance": "Check camera coverage and retention period for footage.", "domain": "Physical & Environmental Security"}, {"id": "7.5", "theme": "Physical", "title": "Protecting against physical and environmental threats", "desc": "Protections exist against fire, flood, power loss, etc.", "guidance": "Check fire suppression, UPS, and environmental monitoring records.", "domain": "Physical & Environmental Security"}, {"id": "7.6", "theme": "Physical", "title": "Working in secure areas", "desc": "Rules govern behaviour within secure areas (e.g. no unescorted visitors).", "guidance": "Check posted rules or briefing content for secure areas.", "domain": "Physical & Environmental Security"}, {"id": "7.7", "theme": "Physical", "title": "Clear desk and clear screen", "desc": "Sensitive material isn't left exposed at unattended desks/screens.", "guidance": "Do a walk-through check and review the screen-lock timeout setting.", "domain": "Physical & Environmental Security"}, {"id": "7.8", "theme": "Physical", "title": "Equipment siting and protection", "desc": "Equipment is placed to reduce risk of damage or unauthorized viewing.", "guidance": "Check server/network equipment placement and shielding.", "domain": "Physical & Environmental Security"}, {"id": "7.9", "theme": "Physical", "title": "Security of assets off-premises", "desc": "Assets taken off-site (laptops, media) are protected equivalently.", "guidance": "Check the mobile/off-site asset policy and encryption status.", "domain": "Physical & Environmental Security"}, {"id": "7.10", "theme": "Physical", "title": "Storage media", "desc": "Media is managed, transported and disposed of securely through its lifecycle.", "guidance": "Check media handling and secure-disposal certificates.", "domain": "Physical & Environmental Security"}, {"id": "7.11", "theme": "Physical", "title": "Supporting utilities", "desc": "Power, cooling, and other utilities supporting systems are protected.", "guidance": "Check redundancy and maintenance records for utilities.", "domain": "Physical & Environmental Security"}, {"id": "7.12", "theme": "Physical", "title": "Cabling security", "desc": "Power and data cabling is protected from interception or damage.", "guidance": "Check cable routing and any cabling security documentation.", "domain": "Physical & Environmental Security"}, {"id": "7.13", "theme": "Physical", "title": "Equipment maintenance", "desc": "Equipment is maintained to keep it available and secure.", "guidance": "Check maintenance schedules and service records.", "domain": "Physical & Environmental Security"}, {"id": "7.14", "theme": "Physical", "title": "Secure disposal or re-use of equipment", "desc": "Data is verifiably removed before equipment is reused or disposed of.", "guidance": "Check data-wipe/destruction certificates for retired hardware.", "domain": "Physical & Environmental Security"}, {"id": "8.1", "theme": "Technological", "title": "User endpoint devices", "desc": "Endpoint devices (laptops, phones) meet a minimum security baseline.", "guidance": "Check the endpoint hardening baseline and compliance reporting.", "domain": "Access Control & Identity"}, {"id": "8.2", "theme": "Technological", "title": "Privileged access rights", "desc": "Privileged accounts are tightly controlled and monitored.", "guidance": "Check the privileged access inventory and its last review.", "domain": "Access Control & Identity"}, {"id": "8.3", "theme": "Technological", "title": "Information access restriction", "desc": "Access to information is limited per the access control policy.", "guidance": "Sample a system's permission model against documented need-to-know.", "domain": "Access Control & Identity"}, {"id": "8.4", "theme": "Technological", "title": "Access to source code", "desc": "Source code access and change rights are controlled.", "guidance": "Check repository permissions and branch protection settings.", "domain": "Access Control & Identity"}, {"id": "8.5", "theme": "Technological", "title": "Secure authentication", "desc": "Authentication methods (e.g. MFA) match the sensitivity of what's protected.", "guidance": "Check MFA coverage across key systems.", "domain": "Access Control & Identity"}, {"id": "8.6", "theme": "Technological", "title": "Capacity management", "desc": "Resource use is monitored and forecast to avoid capacity failures.", "guidance": "Check capacity dashboards or forecasting reports.", "domain": "Operations & Change Management"}, {"id": "8.7", "theme": "Technological", "title": "Protection against malware", "desc": "Anti-malware controls are deployed and kept current.", "guidance": "Check endpoint protection coverage and definition update status.", "domain": "Operations & Change Management"}, {"id": "8.8", "theme": "Technological", "title": "Management of technical vulnerabilities", "desc": "Vulnerabilities are identified and remediated within defined timeframes.", "guidance": "Pull the latest vulnerability scan and remediation SLAs.", "domain": "Risk Management"}, {"id": "8.9", "theme": "Technological", "title": "Configuration management", "desc": "Secure baseline configurations are defined and enforced.", "guidance": "Check configuration baseline docs and drift-detection results.", "domain": "Operations & Change Management"}, {"id": "8.10", "theme": "Technological", "title": "Information deletion", "desc": "Information no longer needed is deleted per retention rules.", "guidance": "Check automated deletion/retention enforcement settings.", "domain": "Asset Management & Classification"}, {"id": "8.11", "theme": "Technological", "title": "Data masking", "desc": "Sensitive data is masked or pseudonymized where full exposure isn't needed.", "guidance": "Check masking in non-production/test environments.", "domain": "Cryptography & Data Protection"}, {"id": "8.12", "theme": "Technological", "title": "Data leakage prevention", "desc": "Controls reduce the risk of unauthorized data exfiltration.", "guidance": "Check DLP tooling rules and recent alerts.", "domain": "Cryptography & Data Protection"}, {"id": "8.13", "theme": "Technological", "title": "Information backup", "desc": "Backups are taken, tested, and stored per criticality.", "guidance": "Check backup schedules and the last successful restore test.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "8.14", "theme": "Technological", "title": "Redundancy of information processing facilities", "desc": "Critical facilities have redundancy to meet availability needs.", "guidance": "Check failover architecture and its last test.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "8.15", "theme": "Technological", "title": "Logging", "desc": "Events are logged with enough detail to support investigation.", "guidance": "Check log coverage, retention period, and tamper protection.", "domain": "Logging & Monitoring"}, {"id": "8.16", "theme": "Technological", "title": "Monitoring activities", "desc": "Systems and networks are monitored for anomalous activity.", "guidance": "Check SIEM/monitoring coverage and alert response times.", "domain": "Logging & Monitoring"}, {"id": "8.17", "theme": "Technological", "title": "Clock synchronization", "desc": "System clocks are synchronized to support reliable log correlation.", "guidance": "Check NTP configuration across key systems.", "domain": "Logging & Monitoring"}, {"id": "8.18", "theme": "Technological", "title": "Use of privileged utility programs", "desc": "Powerful system utilities are restricted and logged.", "guidance": "Check which accounts can run privileged utilities and why.", "domain": "Access Control & Identity"}, {"id": "8.19", "theme": "Technological", "title": "Installation of software on operational systems", "desc": "Software installation on production systems is controlled.", "guidance": "Check change-approval requirements for new software installs.", "domain": "Operations & Change Management"}, {"id": "8.20", "theme": "Technological", "title": "Networks security", "desc": "Networks are designed and managed to protect data in transit.", "guidance": "Check network security architecture documentation.", "domain": "Network & Communications Security"}, {"id": "8.21", "theme": "Technological", "title": "Security of network services", "desc": "Security features of network services are identified and managed.", "guidance": "Check SLAs/security terms with network service providers.", "domain": "Network & Communications Security"}, {"id": "8.22", "theme": "Technological", "title": "Segregation of networks", "desc": "Networks are segmented to contain the blast radius of an incident.", "guidance": "Check VLAN/segmentation diagrams and firewall rules between zones.", "domain": "Network & Communications Security"}, {"id": "8.23", "theme": "Technological", "title": "Web filtering", "desc": "Access to malicious or inappropriate websites is restricted.", "guidance": "Check web filtering policy and block-list coverage.", "domain": "Network & Communications Security"}, {"id": "8.24", "theme": "Technological", "title": "Use of cryptography", "desc": "Cryptographic controls are used appropriately for data at rest/in transit.", "guidance": "Check the cryptography policy and key management approach.", "domain": "Cryptography & Data Protection"}, {"id": "8.25", "theme": "Technological", "title": "Secure development life cycle", "desc": "Security is built into each phase of software development.", "guidance": "Check the SDLC and where security gates sit within it.", "domain": "System Acquisition & Development"}, {"id": "8.26", "theme": "Technological", "title": "Application security requirements", "desc": "Security requirements are defined before applications are built or bought.", "guidance": "Check requirements docs or RFP criteria for a recent project.", "domain": "System Acquisition & Development"}, {"id": "8.27", "theme": "Technological", "title": "Secure system architecture and engineering principles", "desc": "Systems are designed using established secure-architecture principles.", "guidance": "Check architecture review records against a secure-design checklist.", "domain": "System Acquisition & Development"}, {"id": "8.28", "theme": "Technological", "title": "Secure coding", "desc": "Developers follow secure coding practices.", "guidance": "Check coding standards and static-analysis (SAST) results.", "domain": "System Acquisition & Development"}, {"id": "8.29", "theme": "Technological", "title": "Security testing in development and acceptance", "desc": "Security testing occurs before systems go live.", "guidance": "Check pen-test or security-testing sign-off before releases.", "domain": "System Acquisition & Development"}, {"id": "8.30", "theme": "Technological", "title": "Outsourced development", "desc": "Outsourced development work meets the organization's security requirements.", "guidance": "Check contract security clauses and delivered-code review evidence.", "domain": "Supplier / Third-Party Management"}, {"id": "8.31", "theme": "Technological", "title": "Separation of development, test and production environments", "desc": "Environments are kept separate to prevent unintended changes to production.", "guidance": "Check environment access controls and data-flow between environments.", "domain": "System Acquisition & Development"}, {"id": "8.32", "theme": "Technological", "title": "Change management", "desc": "Changes to systems follow a controlled, auditable process.", "guidance": "Pull a recent change ticket through approval to deployment.", "domain": "Operations & Change Management"}, {"id": "8.33", "theme": "Technological", "title": "Test information", "desc": "Test data is selected/protected appropriately, especially if derived from production.", "guidance": "Check whether production data in test environments is masked.", "domain": "System Acquisition & Development"}, {"id": "8.34", "theme": "Technological", "title": "Protection of information systems during audit testing", "desc": "Audit and assessment activity is planned to avoid disrupting operations.", "guidance": "Check audit test plans for agreed scope and safeguards.", "domain": "Compliance, Audit & Legal"}]}, "pipeda": {"name": "PIPEDA \u2014 10 Fair Information Principles", "controls": [{"id": "1", "theme": "Fair Information Principles", "title": "Accountability", "desc": "The organization is responsible for personal information under its control and must designate someone accountable for compliance.", "guidance": "Confirm a named privacy officer/DPO and documented accountability.", "domain": "Governance & Policy"}, {"id": "2", "theme": "Fair Information Principles", "title": "Identifying Purposes", "desc": "Purposes for collecting personal information are identified at or before collection.", "guidance": "Check that collection notices state why data is collected.", "domain": "Privacy Rights & Transparency"}, {"id": "3", "theme": "Fair Information Principles", "title": "Consent", "desc": "Knowledge and consent are required for the collection, use, or disclosure of personal information, except in limited cases.", "guidance": "Check consent language and mechanism at each collection point.", "domain": "Privacy Rights & Transparency"}, {"id": "4", "theme": "Fair Information Principles", "title": "Limiting Collection", "desc": "Collection is limited to what is necessary for the identified purposes.", "guidance": "Compare fields collected against the stated purpose for a key form/system.", "domain": "Data Minimization & Processing Limits"}, {"id": "5", "theme": "Fair Information Principles", "title": "Limiting Use, Disclosure, and Retention", "desc": "Personal information is used or disclosed only for the purposes for which it was collected, and retained only as long as needed.", "guidance": "Check the retention schedule and use/disclosure logs.", "domain": "Data Minimization & Processing Limits"}, {"id": "6", "theme": "Fair Information Principles", "title": "Accuracy", "desc": "Personal information must be as accurate, complete, and up-to-date as necessary for its purposes.", "guidance": "Check correction/update mechanisms for individuals.", "domain": "Data Minimization & Processing Limits"}, {"id": "7", "theme": "Fair Information Principles", "title": "Safeguards", "desc": "Personal information is protected by security safeguards appropriate to its sensitivity.", "guidance": "Cross-reference with ISO 27001 technical/physical controls in place.", "domain": "Cryptography & Data Protection"}, {"id": "8", "theme": "Fair Information Principles", "title": "Openness", "desc": "Policies and practices about personal information management are readily available.", "guidance": "Check the public privacy policy for completeness and findability.", "domain": "Privacy Rights & Transparency"}, {"id": "9", "theme": "Fair Information Principles", "title": "Individual Access", "desc": "On request, individuals must be told of the existence, use, and disclosure of their personal information and given access to it.", "guidance": "Check the access-request procedure and recent turnaround times.", "domain": "Privacy Rights & Transparency"}, {"id": "10", "theme": "Fair Information Principles", "title": "Challenging Compliance", "desc": "Individuals can challenge compliance with these principles to the accountable person.", "guidance": "Check the complaints process and escalation path to the Privacy Commissioner.", "domain": "Compliance, Audit & Legal"}]}, "nist-privacy": {"name": "NIST Privacy Framework v1.0", "controls": [{"id": "ID.IM-P1", "theme": "Inventory and Mapping (Identify-P)", "title": "Systems and services are inventoried", "desc": "Every system/product/service that processes data is listed.", "guidance": "Pull the data-processing inventory and check its last update date.", "domain": "Asset Management & Classification"}, {"id": "ID.IM-P2", "theme": "Inventory and Mapping (Identify-P)", "title": "Owners are identified", "desc": "Each inventoried system has a named owner or operator.", "guidance": "Check the inventory for an owner field.", "domain": "Asset Management & Classification"}, {"id": "ID.IM-P3", "theme": "Inventory and Mapping (Identify-P)", "title": "Data subjects are inventoried", "desc": "Categories of people whose data is processed (customers, staff, etc.) are listed.", "guidance": "Check whether the inventory distinguishes data-subject categories.", "domain": "Asset Management & Classification"}, {"id": "ID.IM-P4", "theme": "Inventory and Mapping (Identify-P)", "title": "Data actions are inventoried", "desc": "What is done with the data (collect, use, share, retain) is catalogued.", "guidance": "Review the data-flow or data-action log.", "domain": "Asset Management & Classification"}, {"id": "ID.IM-P5", "theme": "Inventory and Mapping (Identify-P)", "title": "Purposes are inventoried", "desc": "The business purpose behind each data action is recorded.", "guidance": "Check that purposes are documented against each data action.", "domain": "Asset Management & Classification"}, {"id": "ID.IM-P6", "theme": "Inventory and Mapping (Identify-P)", "title": "Data elements are inventoried", "desc": "The specific data fields involved in each action are listed.", "guidance": "Sample a system and compare fields collected to the inventory.", "domain": "Asset Management & Classification"}, {"id": "ID.IM-P7", "theme": "Inventory and Mapping (Identify-P)", "title": "Processing environment is identified", "desc": "Where processing happens (location, internal/external, cloud) is documented.", "guidance": "Check environment/location tags in the inventory.", "domain": "Asset Management & Classification"}, {"id": "ID.IM-P8", "theme": "Inventory and Mapping (Identify-P)", "title": "Data processing is mapped", "desc": "A data flow map shows how data moves between systems and parties.", "guidance": "Ask for the current data flow diagram and its last review date.", "domain": "Asset Management & Classification"}, {"id": "ID.BE-P1", "theme": "Business Environment (Identify-P)", "title": "Organizational role is identified", "desc": "The organization's role in the data ecosystem (controller, processor, etc.) is defined and communicated.", "guidance": "Check role definitions in privacy policy or contracts.", "domain": "Governance & Policy"}, {"id": "ID.BE-P2", "theme": "Business Environment (Identify-P)", "title": "Priorities are established", "desc": "Mission and privacy-relevant objectives are set and communicated.", "guidance": "Check strategic/privacy program objectives documentation.", "domain": "Governance & Policy"}, {"id": "ID.BE-P3", "theme": "Business Environment (Identify-P)", "title": "Supporting systems are identified", "desc": "Systems supporting these priorities are identified with key requirements communicated.", "guidance": "Check whether critical systems are flagged and their requirements documented.", "domain": "Governance & Policy"}, {"id": "ID.RA-P1", "theme": "Risk Assessment (Identify-P)", "title": "Contextual factors are identified", "desc": "Factors like data sensitivity and individual vulnerability are considered.", "guidance": "Check risk assessment inputs for context factors.", "domain": "Risk Management"}, {"id": "ID.RA-P2", "theme": "Risk Assessment (Identify-P)", "title": "Analytic bias is evaluated", "desc": "Inputs/outputs of data analytics are checked for bias.", "guidance": "Check for a bias review step in analytics projects.", "domain": "Risk Management"}, {"id": "ID.RA-P3", "theme": "Risk Assessment (Identify-P)", "title": "Problematic actions are identified", "desc": "Data actions that could create problems for individuals are identified.", "guidance": "Review the privacy risk register.", "domain": "Risk Management"}, {"id": "ID.RA-P4", "theme": "Risk Assessment (Identify-P)", "title": "Risk is prioritized", "desc": "Likelihood and impact of problematic actions are used to rank risk.", "guidance": "Check risk scoring methodology and a sample entry.", "domain": "Risk Management"}, {"id": "ID.RA-P5", "theme": "Risk Assessment (Identify-P)", "title": "Risk responses are implemented", "desc": "Chosen risk responses are prioritized and actually carried out.", "guidance": "Check remediation tracking for privacy risks.", "domain": "Risk Management"}, {"id": "ID.DE-P1", "theme": "Data Processing Ecosystem Risk Mgmt (Identify-P)", "title": "Ecosystem risk policy exists", "desc": "Policies for managing third-party data processing risk are agreed by stakeholders.", "guidance": "Check the vendor/third-party privacy risk policy.", "domain": "Supplier / Third-Party Management"}, {"id": "ID.DE-P2", "theme": "Data Processing Ecosystem Risk Mgmt (Identify-P)", "title": "Parties are assessed", "desc": "Third parties are prioritized and assessed via a privacy risk process.", "guidance": "Check a completed third-party privacy risk assessment.", "domain": "Supplier / Third-Party Management"}, {"id": "ID.DE-P3", "theme": "Data Processing Ecosystem Risk Mgmt (Identify-P)", "title": "Contracts implement measures", "desc": "Contracts require appropriate privacy safeguards from processors.", "guidance": "Sample a data processing agreement for privacy clauses.", "domain": "Supplier / Third-Party Management"}, {"id": "ID.DE-P4", "theme": "Data Processing Ecosystem Risk Mgmt (Identify-P)", "title": "Interoperability frameworks used", "desc": "Multi-party frameworks are used to manage shared processing risk where relevant.", "guidance": "Check if any consortium/interoperability agreements apply.", "domain": "Supplier / Third-Party Management"}, {"id": "ID.DE-P5", "theme": "Data Processing Ecosystem Risk Mgmt (Identify-P)", "title": "Parties are routinely assessed", "desc": "Third parties are periodically audited or evaluated.", "guidance": "Check the recurring vendor assessment schedule.", "domain": "Supplier / Third-Party Management"}, {"id": "GV.PO-P1", "theme": "Governance Policies (Govern-P)", "title": "Privacy values are established", "desc": "Organizational privacy values and policy are set and communicated.", "guidance": "Check the published privacy policy and its approval record.", "domain": "Governance & Policy"}, {"id": "GV.PO-P2", "theme": "Governance Policies (Govern-P)", "title": "Privacy is built into development", "desc": "Processes instill privacy values during system/product development.", "guidance": "Check for privacy-by-design steps in the SDLC.", "domain": "Governance & Policy"}, {"id": "GV.PO-P3", "theme": "Governance Policies (Govern-P)", "title": "Roles are established", "desc": "Workforce privacy roles and responsibilities are defined.", "guidance": "Check role descriptions referencing privacy duties.", "domain": "Governance & Policy"}, {"id": "GV.PO-P4", "theme": "Governance Policies (Govern-P)", "title": "Third-party roles are aligned", "desc": "Privacy roles are coordinated with service providers/partners.", "guidance": "Check contracts for aligned privacy responsibilities.", "domain": "Governance & Policy"}, {"id": "GV.PO-P5", "theme": "Governance Policies (Govern-P)", "title": "Legal requirements are understood", "desc": "Applicable privacy laws and contractual duties are tracked.", "guidance": "Check the compliance obligations register for privacy laws.", "domain": "Governance & Policy"}, {"id": "GV.PO-P6", "theme": "Governance Policies (Govern-P)", "title": "Governance addresses privacy risk", "desc": "Risk management policy explicitly covers privacy, not just security.", "guidance": "Check whether the risk framework has a privacy risk category.", "domain": "Governance & Policy"}, {"id": "GV.RM-P1", "theme": "Risk Management Strategy (Govern-P)", "title": "Risk process is agreed", "desc": "A privacy risk management process is established and agreed by stakeholders.", "guidance": "Check sign-off on the privacy risk methodology.", "domain": "Risk Management"}, {"id": "GV.RM-P2", "theme": "Risk Management Strategy (Govern-P)", "title": "Risk tolerance is set", "desc": "The organization's privacy risk tolerance is determined and expressed.", "guidance": "Check for a stated risk appetite/tolerance statement.", "domain": "Risk Management"}, {"id": "GV.RM-P3", "theme": "Risk Management Strategy (Govern-P)", "title": "Tolerance reflects ecosystem role", "desc": "Risk tolerance accounts for the organization's role in the data ecosystem.", "guidance": "Check whether tolerance differs for controller vs. processor activities.", "domain": "Risk Management"}, {"id": "GV.AT-P1", "theme": "Awareness and Training (Govern-P)", "title": "Workforce is trained", "desc": "Staff are informed and trained on privacy roles.", "guidance": "Pull training completion records.", "domain": "Awareness & Training"}, {"id": "GV.AT-P2", "theme": "Awareness and Training (Govern-P)", "title": "Executives understand roles", "desc": "Senior leaders understand their privacy responsibilities.", "guidance": "Check executive briefing or onboarding materials.", "domain": "Awareness & Training"}, {"id": "GV.AT-P3", "theme": "Awareness and Training (Govern-P)", "title": "Privacy staff are trained", "desc": "Dedicated privacy personnel understand their responsibilities.", "guidance": "Check role-specific training for privacy staff.", "domain": "Awareness & Training"}, {"id": "GV.AT-P4", "theme": "Awareness and Training (Govern-P)", "title": "Third parties understand roles", "desc": "Vendors/partners understand their privacy responsibilities.", "guidance": "Check vendor onboarding materials for privacy expectations.", "domain": "Awareness & Training"}, {"id": "GV.MT-P1", "theme": "Monitoring and Review (Govern-P)", "title": "Risk is re-evaluated", "desc": "Privacy risk is reassessed as systems or context change.", "guidance": "Check the cadence of privacy risk reassessment.", "domain": "Compliance, Audit & Legal"}, {"id": "GV.MT-P2", "theme": "Monitoring and Review (Govern-P)", "title": "Policies are reviewed", "desc": "Privacy values, policy, and training are reviewed and gaps addressed.", "guidance": "Check the last policy review date and any resulting changes.", "domain": "Compliance, Audit & Legal"}, {"id": "GV.MT-P3", "theme": "Monitoring and Review (Govern-P)", "title": "Compliance is checked", "desc": "Processes exist to assess ongoing compliance with privacy policy.", "guidance": "Check a compliance self-assessment or audit.", "domain": "Compliance, Audit & Legal"}, {"id": "GV.MT-P4", "theme": "Monitoring and Review (Govern-P)", "title": "Progress is communicated", "desc": "Processes exist to report privacy program progress internally.", "guidance": "Check for privacy program status reporting.", "domain": "Compliance, Audit & Legal"}, {"id": "GV.MT-P5", "theme": "Monitoring and Review (Govern-P)", "title": "Disclosed issues are handled", "desc": "A process exists to receive and respond to reported problematic data actions.", "guidance": "Check the incident/complaint intake process for privacy issues.", "domain": "Compliance, Audit & Legal"}, {"id": "GV.MT-P6", "theme": "Monitoring and Review (Govern-P)", "title": "Lessons learned are applied", "desc": "Findings from reviews or incidents feed back into policy.", "guidance": "Check for a post-review action log.", "domain": "Compliance, Audit & Legal"}, {"id": "GV.MT-P7", "theme": "Monitoring and Review (Govern-P)", "title": "Individual complaints are handled", "desc": "A process exists to receive, track, and respond to individuals' privacy questions or complaints.", "guidance": "Check the complaints log and average response time.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.PO-P1", "theme": "Data Processing Policy (Control-P)", "title": "Preference mechanisms are established", "desc": "Processes let individuals set data processing preferences/requests.", "guidance": "Check the consent/preference management tool or process.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.PO-P2", "theme": "Data Processing Policy (Control-P)", "title": "Preference mechanisms are maintained", "desc": "These mechanisms are kept current as systems change.", "guidance": "Check the last update to preference management processes.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P1", "theme": "Data Processing Management (Control-P)", "title": "Data can be reviewed", "desc": "Individuals'/staff data elements can be accessed for review.", "guidance": "Check the data subject access request (DSAR) process.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P2", "theme": "Data Processing Management (Control-P)", "title": "Data can be corrected", "desc": "Data elements can be accessed to fix inaccuracies.", "guidance": "Check the correction request workflow.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P3", "theme": "Data Processing Management (Control-P)", "title": "Completeness can be verified", "desc": "Data elements can be checked for completeness.", "guidance": "Check data quality validation steps.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P4", "theme": "Data Processing Management (Control-P)", "title": "Data can be disclosed on request", "desc": "Data elements can be accessed for transmission/disclosure.", "guidance": "Check the data portability/export process.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P5", "theme": "Data Processing Management (Control-P)", "title": "Data can be altered", "desc": "Mechanisms exist to alter data elements when needed.", "guidance": "Check update/edit permissions in the relevant system.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P6", "theme": "Data Processing Management (Control-P)", "title": "Data can be deleted", "desc": "Mechanisms exist to delete data elements on request or per schedule.", "guidance": "Check the deletion request process and retention automation.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P7", "theme": "Data Processing Management (Control-P)", "title": "Accuracy is managed", "desc": "Data accuracy is actively managed across processing activities.", "guidance": "Check accuracy-check routines or reconciliation reports.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P8", "theme": "Data Processing Management (Control-P)", "title": "Consent is managed", "desc": "Consent is captured, tracked, and honoured per the privacy program.", "guidance": "Check the consent management system and audit trail.", "domain": "Privacy Rights & Transparency"}, {"id": "CT.DM-P9", "theme": "Data Processing Management (Control-P)", "title": "De-identification risk is managed", "desc": "Technical measures manage re-identification risk for de-identified data.", "guidance": "Check the de-identification methodology and re-identification risk review.", "domain": "Data Minimization & Processing Limits"}, {"id": "CT.DP-P1", "theme": "Disassociated Processing (Control-P)", "title": "Observability is limited", "desc": "Data is processed to limit how easily individuals can be observed.", "guidance": "Check for aggregation or minimization techniques in use.", "domain": "Data Minimization & Processing Limits"}, {"id": "CT.DP-P2", "theme": "Disassociated Processing (Control-P)", "title": "Identification is limited", "desc": "Processing limits the ability to identify specific individuals where not needed.", "guidance": "Check where identifiers are stripped or generalized.", "domain": "Data Minimization & Processing Limits"}, {"id": "CT.DP-P3", "theme": "Disassociated Processing (Control-P)", "title": "Formal identifiers are protected", "desc": "Techniques like pseudonymization/tokenization are used.", "guidance": "Check tokenization/pseudonymization implementation.", "domain": "Data Minimization & Processing Limits"}, {"id": "CT.DP-P4", "theme": "Disassociated Processing (Control-P)", "title": "Access is need-based", "desc": "Only necessary parties/processes can associate data elements.", "guidance": "Check access segmentation for linked data.", "domain": "Data Minimization & Processing Limits"}, {"id": "CT.DP-P5", "theme": "Disassociated Processing (Control-P)", "title": "Attribute references replace values", "desc": "References are substituted for raw attribute values where possible.", "guidance": "Check whether direct identifiers are substituted with references in processing systems.", "domain": "Data Minimization & Processing Limits"}, {"id": "CM.PO-P1", "theme": "Communication Policy (Communicate-P)", "title": "Transparency policy exists", "desc": "Policies govern how data processing purposes/risks are communicated.", "guidance": "Check the transparency/notice policy.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.PO-P2", "theme": "Communication Policy (Communicate-P)", "title": "Communication roles are set", "desc": "Responsibility for privacy communications is assigned.", "guidance": "Check who owns privacy notice content and updates.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P1", "theme": "Data Processing Awareness (Communicate-P)", "title": "Notices are provided", "desc": "Notices communicate processing purposes, practices, and options.", "guidance": "Check the current privacy notice for completeness.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P2", "theme": "Data Processing Awareness (Communicate-P)", "title": "Feedback is collected", "desc": "Mechanisms exist to gather individual feedback on data processing.", "guidance": "Check for a feedback channel tied to privacy notices.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P3", "theme": "Data Processing Awareness (Communicate-P)", "title": "Processing is visible by design", "desc": "Products/systems are designed so processing is visible to users.", "guidance": "Check UI/UX for processing indicators (e.g., consent banners).", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P4", "theme": "Data Processing Awareness (Communicate-P)", "title": "Disclosures are recorded", "desc": "Records of data sharing/disclosure are kept and accessible.", "guidance": "Check the disclosure log.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P5", "theme": "Data Processing Awareness (Communicate-P)", "title": "Corrections are propagated", "desc": "Data corrections/deletions are communicated to relevant recipients.", "guidance": "Check whether downstream parties are notified of corrections.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P6", "theme": "Data Processing Awareness (Communicate-P)", "title": "Provenance is maintained", "desc": "Data lineage is tracked and accessible for review.", "guidance": "Check for data lineage/provenance documentation.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P7", "theme": "Data Processing Awareness (Communicate-P)", "title": "Purposes are communicated", "desc": "The purpose of each data action is made clear to individuals.", "guidance": "Check notice language against actual data actions.", "domain": "Privacy Rights & Transparency"}, {"id": "CM.AW-P8", "theme": "Data Processing Awareness (Communicate-P)", "title": "Access mechanism is provided", "desc": "Individuals have a way to access their own data.", "guidance": "Check the self-service or request-based access mechanism.", "domain": "Privacy Rights & Transparency"}, {"id": "PR.PO-P1", "theme": "Data Protection Policy (Protect-P)", "title": "Baseline safeguards exist", "desc": "A baseline of technical/organizational measures is implemented.", "guidance": "Cross-reference with your ISO 27001 control baseline.", "domain": "Cryptography & Data Protection"}, {"id": "PR.PO-P2", "theme": "Data Protection Policy (Protect-P)", "title": "Change control exists", "desc": "Configuration changes are controlled.", "guidance": "Check the change management process.", "domain": "Cryptography & Data Protection"}, {"id": "PR.PO-P3", "theme": "Data Protection Policy (Protect-P)", "title": "Backups are tested", "desc": "Backups are conducted, maintained and tested.", "guidance": "Check the last successful restore test.", "domain": "Cryptography & Data Protection"}, {"id": "PR.PO-P4", "theme": "Data Protection Policy (Protect-P)", "title": "Destruction policy exists", "desc": "Policy governs secure destruction of data.", "guidance": "Check the data destruction/disposal policy.", "domain": "Cryptography & Data Protection"}, {"id": "PR.PO-P5", "theme": "Data Protection Policy (Protect-P)", "title": "Protections are improved", "desc": "Protection processes are reviewed and improved over time.", "guidance": "Check for a continuous improvement log for safeguards.", "domain": "Cryptography & Data Protection"}, {"id": "PR.PO-P6", "theme": "Data Protection Policy (Protect-P)", "title": "Effectiveness is shared", "desc": "Effectiveness of protections is communicated to relevant parties.", "guidance": "Check reporting on control effectiveness.", "domain": "Cryptography & Data Protection"}, {"id": "PR.PO-P7", "theme": "Data Protection Policy (Protect-P)", "title": "Response plans exist", "desc": "Response/recovery plans are documented and managed.", "guidance": "Check the incident response and recovery plan.", "domain": "Incident Response"}, {"id": "PR.PO-P8", "theme": "Data Protection Policy (Protect-P)", "title": "Response plans are tested", "desc": "Response/recovery plans are actually tested.", "guidance": "Check the last tabletop or DR test date.", "domain": "Incident Response"}, {"id": "PR.PO-P9", "theme": "Data Protection Policy (Protect-P)", "title": "HR practices include privacy", "desc": "Privacy procedures are included in HR practices (onboarding/offboarding).", "guidance": "Check onboarding/offboarding checklists for privacy steps.", "domain": "HR / Personnel Security"}, {"id": "PR.AC-P1", "theme": "Identity, Auth & Access Control (Protect-P)", "title": "Identities are managed", "desc": "Identities/credentials are issued, verified, revoked, and audited.", "guidance": "Check identity lifecycle management records.", "domain": "Access Control & Identity"}, {"id": "PR.AC-P2", "theme": "Identity, Auth & Access Control (Protect-P)", "title": "Physical access is managed", "desc": "Physical access to data-holding areas is controlled.", "guidance": "Check physical access logs for sensitive areas.", "domain": "Access Control & Identity"}, {"id": "PR.AC-P3", "theme": "Identity, Auth & Access Control (Protect-P)", "title": "Remote access is managed", "desc": "Remote access to systems holding personal data is controlled.", "guidance": "Check remote access policy and VPN/MFA enforcement.", "domain": "Access Control & Identity"}, {"id": "PR.AC-P4", "theme": "Identity, Auth & Access Control (Protect-P)", "title": "Least privilege is enforced", "desc": "Access permissions follow least privilege and separation of duties.", "guidance": "Check a recent access review.", "domain": "Access Control & Identity"}, {"id": "PR.AC-P5", "theme": "Identity, Auth & Access Control (Protect-P)", "title": "Network integrity is protected", "desc": "Networks are segmented to protect data flows.", "guidance": "Check network segmentation diagrams.", "domain": "Access Control & Identity"}, {"id": "PR.AC-P6", "theme": "Identity, Auth & Access Control (Protect-P)", "title": "Authentication matches risk", "desc": "Individuals/devices are authenticated commensurate with risk.", "guidance": "Check MFA coverage for systems processing personal data.", "domain": "Access Control & Identity"}, {"id": "PR.DS-P1", "theme": "Data Security (Protect-P)", "title": "Data at rest is protected", "desc": "Encryption or equivalent protects stored personal data.", "guidance": "Check encryption-at-rest configuration.", "domain": "Cryptography & Data Protection"}, {"id": "PR.DS-P2", "theme": "Data Security (Protect-P)", "title": "Data in transit is protected", "desc": "Encryption protects personal data moving between systems.", "guidance": "Check TLS/encryption-in-transit configuration.", "domain": "Cryptography & Data Protection"}, {"id": "PR.DS-P3", "theme": "Data Security (Protect-P)", "title": "Disposal is managed", "desc": "Systems/data are formally managed through removal and disposal.", "guidance": "Check asset disposal and data-wipe certificates.", "domain": "Cryptography & Data Protection"}, {"id": "PR.DS-P4", "theme": "Data Security (Protect-P)", "title": "Capacity is maintained", "desc": "Adequate capacity protects availability of personal data.", "guidance": "Check capacity planning documentation.", "domain": "Cryptography & Data Protection"}, {"id": "PR.DS-P5", "theme": "Data Security (Protect-P)", "title": "Leak protection exists", "desc": "Controls reduce risk of unauthorized data leaks.", "guidance": "Check DLP tooling coverage.", "domain": "Cryptography & Data Protection"}, {"id": "PR.DS-P6", "theme": "Data Security (Protect-P)", "title": "Integrity checks exist", "desc": "Mechanisms verify software/data integrity.", "guidance": "Check integrity-checking tools in use.", "domain": "Cryptography & Data Protection"}, {"id": "PR.DS-P7", "theme": "Data Security (Protect-P)", "title": "Environments are separated", "desc": "Dev/test environments are separate from production.", "guidance": "Check environment separation and whether prod data is masked in test.", "domain": "Cryptography & Data Protection"}, {"id": "PR.DS-P8", "theme": "Data Security (Protect-P)", "title": "Hardware integrity is checked", "desc": "Mechanisms verify hardware integrity where relevant.", "guidance": "Check hardware attestation or supply-chain verification, if applicable.", "domain": "Cryptography & Data Protection"}, {"id": "PR.MA-P1", "theme": "Maintenance (Protect-P)", "title": "Maintenance is controlled", "desc": "Maintenance/repair is logged and performed with approved tools.", "guidance": "Check maintenance logs.", "domain": "Operations & Change Management"}, {"id": "PR.MA-P2", "theme": "Maintenance (Protect-P)", "title": "Remote maintenance is controlled", "desc": "Remote maintenance is approved, logged, and access-controlled.", "guidance": "Check remote maintenance access logs.", "domain": "Operations & Change Management"}, {"id": "PR.PT-P1", "theme": "Protective Technology (Protect-P)", "title": "Logging is defined", "desc": "Audit/log records are defined and reviewed per policy.", "guidance": "Check logging policy and a sample review.", "domain": "Logging & Monitoring"}, {"id": "PR.PT-P2", "theme": "Protective Technology (Protect-P)", "title": "Removable media is controlled", "desc": "Use of removable media is restricted per policy.", "guidance": "Check removable media policy and controls.", "domain": "Network & Communications Security"}, {"id": "PR.PT-P3", "theme": "Protective Technology (Protect-P)", "title": "Least functionality is applied", "desc": "Systems are configured to minimize unnecessary functionality.", "guidance": "Check hardening baselines.", "domain": "Network & Communications Security"}, {"id": "PR.PT-P4", "theme": "Protective Technology (Protect-P)", "title": "Networks are protected", "desc": "Communications/control networks are protected.", "guidance": "Check network protection controls (firewalls, IDS/IPS).", "domain": "Network & Communications Security"}]}, "itsg33": {"name": "ITSG-33 \u2014 Security Control Catalogue (core set)", "controls": [{"id": "AC-1", "theme": "Access Control (AC)", "title": "Access control policy and procedures", "desc": "Documented access control policy and procedures exist and are reviewed.", "guidance": "Check the policy document and its review date.", "domain": "Access Control & Identity"}, {"id": "AC-2", "theme": "Access Control (AC)", "title": "Account management", "desc": "Accounts are created, modified, reviewed, and disabled through a defined process.", "guidance": "Check account lifecycle records for a sample user.", "domain": "Access Control & Identity"}, {"id": "AC-3", "theme": "Access Control (AC)", "title": "Access enforcement", "desc": "Systems technically enforce approved access authorizations.", "guidance": "Check permission configuration against approvals.", "domain": "Access Control & Identity"}, {"id": "AC-4", "theme": "Access Control (AC)", "title": "Information flow enforcement", "desc": "Controls govern how information flows between systems/networks.", "guidance": "Check flow-control rules (firewalls, DLP).", "domain": "Access Control & Identity"}, {"id": "AC-5", "theme": "Access Control (AC)", "title": "Separation of duties", "desc": "Conflicting duties are separated to reduce risk.", "guidance": "Check for single-person control over sensitive functions.", "domain": "Access Control & Identity"}, {"id": "AC-6", "theme": "Access Control (AC)", "title": "Least privilege", "desc": "Users are granted only the access needed for their role.", "guidance": "Sample a role's permissions against job duties.", "domain": "Access Control & Identity"}, {"id": "AC-7", "theme": "Access Control (AC)", "title": "Unsuccessful logon attempts", "desc": "Accounts lock or delay after repeated failed logons.", "guidance": "Check lockout policy configuration.", "domain": "Access Control & Identity"}, {"id": "AC-11", "theme": "Access Control (AC)", "title": "Session lock", "desc": "Sessions lock after a period of inactivity.", "guidance": "Check session timeout settings.", "domain": "Access Control & Identity"}, {"id": "AC-17", "theme": "Access Control (AC)", "title": "Remote access", "desc": "Remote access is authorized, monitored, and controlled.", "guidance": "Check remote access authorization records.", "domain": "Access Control & Identity"}, {"id": "AC-20", "theme": "Access Control (AC)", "title": "Use of external systems", "desc": "Rules govern connecting external systems (contractor devices, etc.) to the network.", "guidance": "Check the external system connection policy.", "domain": "Access Control & Identity"}, {"id": "AT-1", "theme": "Awareness and Training (AT)", "title": "Awareness and training policy", "desc": "A documented training policy and procedures exist.", "guidance": "Check the policy and its review date.", "domain": "Awareness & Training"}, {"id": "AT-2", "theme": "Awareness and Training (AT)", "title": "Security awareness training", "desc": "All personnel receive baseline security awareness training.", "guidance": "Pull training completion records.", "domain": "Awareness & Training"}, {"id": "AT-3", "theme": "Awareness and Training (AT)", "title": "Role-based training", "desc": "Personnel with specific security roles receive tailored training.", "guidance": "Check role-based training content and completion.", "domain": "Awareness & Training"}, {"id": "AT-4", "theme": "Awareness and Training (AT)", "title": "Training records", "desc": "Training completion is tracked and retained.", "guidance": "Check the training records system.", "domain": "Awareness & Training"}, {"id": "AU-1", "theme": "Audit and Accountability (AU)", "title": "Audit and accountability policy", "desc": "A documented audit/logging policy exists.", "guidance": "Check the policy and its review date.", "domain": "Logging & Monitoring"}, {"id": "AU-2", "theme": "Audit and Accountability (AU)", "title": "Event logging", "desc": "The organization defines which events must be logged.", "guidance": "Check the list of auditable events.", "domain": "Logging & Monitoring"}, {"id": "AU-3", "theme": "Audit and Accountability (AU)", "title": "Content of audit records", "desc": "Logs capture enough detail to support investigation.", "guidance": "Sample a log entry for required fields.", "domain": "Logging & Monitoring"}, {"id": "AU-4", "theme": "Audit and Accountability (AU)", "title": "Audit log storage capacity", "desc": "Sufficient storage is allocated for log retention needs.", "guidance": "Check log storage capacity planning.", "domain": "Logging & Monitoring"}, {"id": "AU-5", "theme": "Audit and Accountability (AU)", "title": "Response to audit failures", "desc": "A process exists for responding to logging failures.", "guidance": "Check alerting for logging system failures.", "domain": "Logging & Monitoring"}, {"id": "AU-6", "theme": "Audit and Accountability (AU)", "title": "Audit review, analysis, reporting", "desc": "Logs are reviewed and analyzed on a defined schedule.", "guidance": "Check log review cadence and a sample review.", "domain": "Logging & Monitoring"}, {"id": "AU-9", "theme": "Audit and Accountability (AU)", "title": "Protection of audit information", "desc": "Logs are protected from unauthorized access or tampering.", "guidance": "Check log access permissions and integrity protections.", "domain": "Logging & Monitoring"}, {"id": "AU-11", "theme": "Audit and Accountability (AU)", "title": "Audit record retention", "desc": "Logs are retained per policy/legal requirements.", "guidance": "Check retention configuration against the retention schedule.", "domain": "Logging & Monitoring"}, {"id": "CA-1", "theme": "Assessment, Authorization & Monitoring (CA)", "title": "Assessment and authorization policy", "desc": "A documented policy governs security assessment and authorization.", "guidance": "Check the policy and its review date.", "domain": "Compliance, Audit & Legal"}, {"id": "CA-2", "theme": "Assessment, Authorization & Monitoring (CA)", "title": "Control assessments", "desc": "Security controls are periodically assessed for effectiveness.", "guidance": "Check the last control assessment report.", "domain": "Compliance, Audit & Legal"}, {"id": "CA-5", "theme": "Assessment, Authorization & Monitoring (CA)", "title": "Plan of action and milestones", "desc": "A POA&M tracks remediation of identified weaknesses.", "guidance": "Check the current POA&M and its update cadence.", "domain": "Compliance, Audit & Legal"}, {"id": "CA-6", "theme": "Assessment, Authorization & Monitoring (CA)", "title": "Authorization", "desc": "Systems receive a formal authorization to operate before go-live.", "guidance": "Check the authorization/accreditation record for a system.", "domain": "Compliance, Audit & Legal"}, {"id": "CA-7", "theme": "Assessment, Authorization & Monitoring (CA)", "title": "Continuous monitoring", "desc": "Security posture is monitored on an ongoing basis, not just point-in-time.", "guidance": "Check the continuous monitoring plan and dashboards.", "domain": "Compliance, Audit & Legal"}, {"id": "CA-9", "theme": "Assessment, Authorization & Monitoring (CA)", "title": "Internal system connections", "desc": "Connections between internal system components are authorized and documented.", "guidance": "Check internal connection authorization records.", "domain": "Compliance, Audit & Legal"}, {"id": "CM-1", "theme": "Configuration Management (CM)", "title": "Configuration management policy", "desc": "A documented configuration management policy exists.", "guidance": "Check the policy and its review date.", "domain": "Operations & Change Management"}, {"id": "CM-2", "theme": "Configuration Management (CM)", "title": "Baseline configuration", "desc": "A current baseline configuration is maintained for systems.", "guidance": "Check the baseline document against a live system.", "domain": "Operations & Change Management"}, {"id": "CM-3", "theme": "Configuration Management (CM)", "title": "Configuration change control", "desc": "Changes follow a controlled, auditable process.", "guidance": "Pull a recent change ticket through approval to deployment.", "domain": "Operations & Change Management"}, {"id": "CM-6", "theme": "Configuration Management (CM)", "title": "Configuration settings", "desc": "Secure configuration settings are defined and enforced.", "guidance": "Check configuration settings against a hardening standard.", "domain": "Operations & Change Management"}, {"id": "CM-7", "theme": "Configuration Management (CM)", "title": "Least functionality", "desc": "Systems are configured to provide only essential capabilities.", "guidance": "Check for disabled unnecessary services/ports.", "domain": "Operations & Change Management"}, {"id": "CM-8", "theme": "Configuration Management (CM)", "title": "System component inventory", "desc": "An inventory of system components is maintained.", "guidance": "Check the asset/component inventory for completeness.", "domain": "Operations & Change Management"}, {"id": "CM-11", "theme": "Configuration Management (CM)", "title": "User-installed software", "desc": "Rules govern whether/how users can install their own software.", "guidance": "Check software installation restrictions.", "domain": "Operations & Change Management"}, {"id": "CP-1", "theme": "Contingency Planning (CP)", "title": "Contingency planning policy", "desc": "A documented contingency planning policy exists.", "guidance": "Check the policy and its review date.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "CP-2", "theme": "Contingency Planning (CP)", "title": "Contingency plan", "desc": "A contingency plan defines how operations continue during disruption.", "guidance": "Check the current contingency/BCP document.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "CP-3", "theme": "Contingency Planning (CP)", "title": "Contingency training", "desc": "Personnel are trained on their contingency plan roles.", "guidance": "Check contingency-training completion records.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "CP-4", "theme": "Contingency Planning (CP)", "title": "Contingency plan testing", "desc": "The contingency plan is tested periodically.", "guidance": "Check the last DR/contingency test results.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "CP-9", "theme": "Contingency Planning (CP)", "title": "System backup", "desc": "Backups are performed and protected per criticality.", "guidance": "Check backup schedules and success rates.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "CP-10", "theme": "Contingency Planning (CP)", "title": "System recovery and reconstitution", "desc": "Systems can be recovered and restored to a known state after disruption.", "guidance": "Check the last recovery test and its outcome.", "domain": "Business Continuity & Disaster Recovery"}, {"id": "IA-1", "theme": "Identification and Authentication (IA)", "title": "Identification and authentication policy", "desc": "A documented policy governs identification/authentication.", "guidance": "Check the policy and its review date.", "domain": "Access Control & Identity"}, {"id": "IA-2", "theme": "Identification and Authentication (IA)", "title": "User identification and authentication", "desc": "Organizational users are uniquely identified and authenticated.", "guidance": "Check unique-ID enforcement and MFA coverage.", "domain": "Access Control & Identity"}, {"id": "IA-3", "theme": "Identification and Authentication (IA)", "title": "Device identification and authentication", "desc": "Devices are identified/authenticated before connecting to the network.", "guidance": "Check device authentication (e.g., 802.1X, certificates).", "domain": "Access Control & Identity"}, {"id": "IA-4", "theme": "Identification and Authentication (IA)", "title": "Identifier management", "desc": "User/device identifiers are issued and managed through their lifecycle.", "guidance": "Check identifier issuance and deactivation records.", "domain": "Access Control & Identity"}, {"id": "IA-5", "theme": "Identification and Authentication (IA)", "title": "Authenticator management", "desc": "Passwords/keys/tokens are issued, protected, and rotated securely.", "guidance": "Check authenticator issuance and rotation policy.", "domain": "Access Control & Identity"}, {"id": "IA-8", "theme": "Identification and Authentication (IA)", "title": "Non-organizational user authentication", "desc": "External users (partners, public) are authenticated appropriately.", "guidance": "Check authentication controls for external-facing systems.", "domain": "Access Control & Identity"}, {"id": "IR-1", "theme": "Incident Response (IR)", "title": "Incident response policy", "desc": "A documented incident response policy exists.", "guidance": "Check the policy and its review date.", "domain": "Incident Response"}, {"id": "IR-2", "theme": "Incident Response (IR)", "title": "Incident response training", "desc": "Personnel are trained on incident response roles.", "guidance": "Check IR training completion records.", "domain": "Incident Response"}, {"id": "IR-3", "theme": "Incident Response (IR)", "title": "Incident response testing", "desc": "The incident response plan is tested (tabletop or simulation).", "guidance": "Check the last IR test/tabletop date.", "domain": "Incident Response"}, {"id": "IR-4", "theme": "Incident Response (IR)", "title": "Incident handling", "desc": "A defined process handles detection through recovery of incidents.", "guidance": "Review a closed incident ticket for the steps taken.", "domain": "Incident Response"}, {"id": "IR-6", "theme": "Incident Response (IR)", "title": "Incident reporting", "desc": "Incidents are reported to the right internal/external parties within required timeframes.", "guidance": "Check reporting timelines against a sample incident.", "domain": "Incident Response"}, {"id": "IR-8", "theme": "Incident Response (IR)", "title": "Incident response plan", "desc": "A documented incident response plan exists and is kept current.", "guidance": "Check the plan's last review date.", "domain": "Incident Response"}, {"id": "MA-1", "theme": "Maintenance (MA)", "title": "System maintenance policy", "desc": "A documented maintenance policy exists.", "guidance": "Check the policy and its review date.", "domain": "Operations & Change Management"}, {"id": "MA-2", "theme": "Maintenance (MA)", "title": "Controlled maintenance", "desc": "Maintenance activities are scheduled, performed, and logged.", "guidance": "Check maintenance logs.", "domain": "Operations & Change Management"}, {"id": "MA-4", "theme": "Maintenance (MA)", "title": "Nonlocal maintenance", "desc": "Remote maintenance is approved, logged, and access-controlled.", "guidance": "Check remote maintenance session logs.", "domain": "Operations & Change Management"}, {"id": "MA-5", "theme": "Maintenance (MA)", "title": "Maintenance personnel", "desc": "Only authorized personnel perform maintenance on systems.", "guidance": "Check maintenance personnel authorization records.", "domain": "Operations & Change Management"}, {"id": "MP-1", "theme": "Media Protection (MP)", "title": "Media protection policy", "desc": "A documented media protection policy exists.", "guidance": "Check the policy and its review date.", "domain": "Physical & Environmental Security"}, {"id": "MP-2", "theme": "Media Protection (MP)", "title": "Media access", "desc": "Access to media containing sensitive information is restricted.", "guidance": "Check media storage access controls.", "domain": "Physical & Environmental Security"}, {"id": "MP-4", "theme": "Media Protection (MP)", "title": "Media storage", "desc": "Media is physically controlled and securely stored.", "guidance": "Check media storage location security.", "domain": "Physical & Environmental Security"}, {"id": "MP-5", "theme": "Media Protection (MP)", "title": "Media transport", "desc": "Media is protected and tracked during transport.", "guidance": "Check chain-of-custody records for transported media.", "domain": "Physical & Environmental Security"}, {"id": "MP-6", "theme": "Media Protection (MP)", "title": "Media sanitization", "desc": "Media is sanitized or destroyed before reuse or disposal.", "guidance": "Check media sanitization/destruction certificates.", "domain": "Physical & Environmental Security"}, {"id": "MP-7", "theme": "Media Protection (MP)", "title": "Media use", "desc": "Rules govern use of portable storage media (e.g., USB drives).", "guidance": "Check portable media usage policy and controls.", "domain": "Physical & Environmental Security"}, {"id": "PE-1", "theme": "Physical and Environmental Protection (PE)", "title": "Physical protection policy", "desc": "A documented physical/environmental protection policy exists.", "guidance": "Check the policy and its review date.", "domain": "Physical & Environmental Security"}, {"id": "PE-2", "theme": "Physical and Environmental Protection (PE)", "title": "Physical access authorizations", "desc": "Access to facilities is authorized based on role.", "guidance": "Check physical access authorization records.", "domain": "Physical & Environmental Security"}, {"id": "PE-3", "theme": "Physical and Environmental Protection (PE)", "title": "Physical access control", "desc": "Entry points are controlled (badges, locks, guards).", "guidance": "Check visitor logs and badge-access reports.", "domain": "Physical & Environmental Security"}, {"id": "PE-6", "theme": "Physical and Environmental Protection (PE)", "title": "Monitoring physical access", "desc": "Physical access is monitored to detect and respond to incidents.", "guidance": "Check camera/alarm coverage and retention.", "domain": "Physical & Environmental Security"}, {"id": "PE-8", "theme": "Physical and Environmental Protection (PE)", "title": "Visitor access records", "desc": "Visitor access is logged.", "guidance": "Check visitor log completeness.", "domain": "Physical & Environmental Security"}, {"id": "PE-13", "theme": "Physical and Environmental Protection (PE)", "title": "Fire protection", "desc": "Fire detection and suppression equipment is in place and tested.", "guidance": "Check fire system inspection records.", "domain": "Physical & Environmental Security"}, {"id": "PE-14", "theme": "Physical and Environmental Protection (PE)", "title": "Environmental controls", "desc": "Temperature/humidity controls protect equipment.", "guidance": "Check environmental monitoring logs.", "domain": "Physical & Environmental Security"}, {"id": "PL-1", "theme": "Planning (PL)", "title": "Security planning policy", "desc": "A documented security planning policy exists.", "guidance": "Check the policy and its review date.", "domain": "Governance & Policy"}, {"id": "PL-2", "theme": "Planning (PL)", "title": "System security plan", "desc": "Each system has a documented security plan.", "guidance": "Check the security plan for a sample system.", "domain": "Governance & Policy"}, {"id": "PL-4", "theme": "Planning (PL)", "title": "Rules of behaviour", "desc": "Rules of acceptable behaviour are documented and acknowledged by users.", "guidance": "Check rules-of-behaviour acknowledgment records.", "domain": "Governance & Policy"}, {"id": "PL-8", "theme": "Planning (PL)", "title": "Security architecture", "desc": "A security architecture guides system design decisions.", "guidance": "Check architecture documentation against a recent project.", "domain": "Governance & Policy"}, {"id": "PS-1", "theme": "Personnel Security (PS)", "title": "Personnel security policy", "desc": "A documented personnel security policy exists.", "guidance": "Check the policy and its review date.", "domain": "HR / Personnel Security"}, {"id": "PS-2", "theme": "Personnel Security (PS)", "title": "Position risk designation", "desc": "Positions are assessed for risk level to determine screening depth.", "guidance": "Check risk designations against role descriptions.", "domain": "HR / Personnel Security"}, {"id": "PS-3", "theme": "Personnel Security (PS)", "title": "Personnel screening", "desc": "Background screening is performed proportionate to role risk.", "guidance": "Check HR's screening procedure and a sample file.", "domain": "HR / Personnel Security"}, {"id": "PS-4", "theme": "Personnel Security (PS)", "title": "Personnel termination", "desc": "Access and assets are revoked/returned promptly at termination.", "guidance": "Check the offboarding checklist and its timing.", "domain": "HR / Personnel Security"}, {"id": "PS-6", "theme": "Personnel Security (PS)", "title": "Access agreements", "desc": "Personnel sign access/confidentiality agreements before access is granted.", "guidance": "Check signed agreement records.", "domain": "HR / Personnel Security"}, {"id": "PS-7", "theme": "Personnel Security (PS)", "title": "External personnel security", "desc": "Contractors/third parties meet equivalent personnel security requirements.", "guidance": "Check contractor screening requirements in contracts.", "domain": "HR / Personnel Security"}, {"id": "RA-1", "theme": "Risk Assessment (RA)", "title": "Risk assessment policy", "desc": "A documented risk assessment policy exists.", "guidance": "Check the policy and its review date.", "domain": "Risk Management"}, {"id": "RA-2", "theme": "Risk Assessment (RA)", "title": "Security categorization", "desc": "Systems/information are categorized by sensitivity/impact.", "guidance": "Check categorization records for a sample system.", "domain": "Risk Management"}, {"id": "RA-3", "theme": "Risk Assessment (RA)", "title": "Risk assessment", "desc": "Formal risk assessments are performed and updated periodically.", "guidance": "Pull the most recent risk assessment report.", "domain": "Risk Management"}, {"id": "RA-5", "theme": "Risk Assessment (RA)", "title": "Vulnerability monitoring and scanning", "desc": "Systems are regularly scanned for vulnerabilities.", "guidance": "Pull the latest vulnerability scan and remediation status.", "domain": "Risk Management"}, {"id": "SA-1", "theme": "System and Services Acquisition (SA)", "title": "Acquisition policy", "desc": "A documented system/services acquisition policy exists.", "guidance": "Check the policy and its review date.", "domain": "System Acquisition & Development"}, {"id": "SA-3", "theme": "System and Services Acquisition (SA)", "title": "System development life cycle", "desc": "Security is integrated into each SDLC phase.", "guidance": "Check where security gates sit in the SDLC.", "domain": "System Acquisition & Development"}, {"id": "SA-4", "theme": "System and Services Acquisition (SA)", "title": "Acquisition process", "desc": "Security requirements are included in acquisition/procurement processes.", "guidance": "Check RFP/contract templates for security requirements.", "domain": "System Acquisition & Development"}, {"id": "SA-8", "theme": "System and Services Acquisition (SA)", "title": "Security engineering principles", "desc": "Systems are designed using recognized secure-engineering principles.", "guidance": "Check architecture review records against a secure-design checklist.", "domain": "System Acquisition & Development"}, {"id": "SA-9", "theme": "System and Services Acquisition (SA)", "title": "External system services", "desc": "Security requirements extend to externally provided services.", "guidance": "Check vendor contracts for security requirements.", "domain": "System Acquisition & Development"}, {"id": "SA-11", "theme": "System and Services Acquisition (SA)", "title": "Developer testing and evaluation", "desc": "Developers test for security flaws before release.", "guidance": "Check test/security scan results before a recent release.", "domain": "System Acquisition & Development"}, {"id": "SC-1", "theme": "System and Communications Protection (SC)", "title": "System protection policy", "desc": "A documented system and communications protection policy exists.", "guidance": "Check the policy and its review date.", "domain": "Network & Communications Security"}, {"id": "SC-5", "theme": "System and Communications Protection (SC)", "title": "Denial-of-service protection", "desc": "Controls reduce the impact of denial-of-service attacks.", "guidance": "Check DDoS protection tooling and configuration.", "domain": "Network & Communications Security"}, {"id": "SC-7", "theme": "System and Communications Protection (SC)", "title": "Boundary protection", "desc": "Network boundaries are monitored and controlled.", "guidance": "Check firewall/boundary device configuration.", "domain": "Network & Communications Security"}, {"id": "SC-8", "theme": "System and Communications Protection (SC)", "title": "Transmission confidentiality and integrity", "desc": "Data in transit is protected from disclosure/modification.", "guidance": "Check encryption-in-transit configuration.", "domain": "Network & Communications Security"}, {"id": "SC-12", "theme": "System and Communications Protection (SC)", "title": "Cryptographic key management", "desc": "Cryptographic keys are established and managed securely through their lifecycle.", "guidance": "Check key management procedures and tooling.", "domain": "Cryptography & Data Protection"}, {"id": "SC-13", "theme": "System and Communications Protection (SC)", "title": "Cryptographic protection", "desc": "Approved cryptographic mechanisms are used where required.", "guidance": "Check cryptographic standards in use against policy.", "domain": "Cryptography & Data Protection"}, {"id": "SC-28", "theme": "System and Communications Protection (SC)", "title": "Protection of information at rest", "desc": "Data at rest is protected (e.g., via encryption).", "guidance": "Check encryption-at-rest configuration.", "domain": "Cryptography & Data Protection"}, {"id": "SI-1", "theme": "System and Information Integrity (SI)", "title": "System integrity policy", "desc": "A documented system and information integrity policy exists.", "guidance": "Check the policy and its review date.", "domain": "Operations & Change Management"}, {"id": "SI-2", "theme": "System and Information Integrity (SI)", "title": "Flaw remediation", "desc": "Identified flaws/vulnerabilities are remediated within defined timeframes.", "guidance": "Check remediation SLAs against actual closure times.", "domain": "Operations & Change Management"}, {"id": "SI-3", "theme": "System and Information Integrity (SI)", "title": "Malicious code protection", "desc": "Anti-malware controls are deployed and kept current.", "guidance": "Check endpoint protection coverage and update status.", "domain": "Operations & Change Management"}, {"id": "SI-4", "theme": "System and Information Integrity (SI)", "title": "System monitoring", "desc": "Systems and networks are monitored for anomalous activity.", "guidance": "Check SIEM/monitoring coverage and alert response times.", "domain": "Operations & Change Management"}, {"id": "SI-5", "theme": "System and Information Integrity (SI)", "title": "Security alerts and advisories", "desc": "Security advisories are received and acted upon.", "guidance": "Check the advisory intake and response process.", "domain": "Operations & Change Management"}, {"id": "SI-7", "theme": "System and Information Integrity (SI)", "title": "Software and information integrity", "desc": "Mechanisms verify software/firmware/information integrity.", "guidance": "Check integrity-checking tools in use.", "domain": "Operations & Change Management"}, {"id": "PM-1", "theme": "Program Management (PM)", "title": "Information security program plan", "desc": "A documented program plan governs the overall security program.", "guidance": "Check the current program plan and its owner.", "domain": "Governance & Policy"}, {"id": "PM-2", "theme": "Program Management (PM)", "title": "Security program leadership", "desc": "A designated senior official leads the security program.", "guidance": "Check who holds this role and their mandate.", "domain": "Governance & Policy"}, {"id": "PM-9", "theme": "Program Management (PM)", "title": "Risk management strategy", "desc": "An organization-wide risk management strategy is documented.", "guidance": "Check the enterprise risk management strategy document.", "domain": "Governance & Policy"}, {"id": "PM-11", "theme": "Program Management (PM)", "title": "Mission and business process definition", "desc": "Business processes are defined with security requirements integrated.", "guidance": "Check whether process documentation references security requirements.", "domain": "Governance & Policy"}]}}</script>
+<script>
+(function() {
+  const DATA = JSON.parse(document.getElementById('framework-data').textContent);
+  const FW_KEYS = Object.keys(DATA);
+  const FW_BADGE = { 'iso27001': 'ISO', 'pipeda': 'PIPEDA', 'nist-privacy': 'NIST', 'itsg33': 'ITSG-33' };
+
+  let currentFw = FW_KEYS[0];
+  let blendMode = false;
+  let blendFws = FW_KEYS.slice();
+  let currentGroupFilter = '';
+  let currentStatusFilter = '';
+  let currentSearch = '';
+  let openRow = null;
+
+  function activeFws() { return blendMode ? blendFws : [currentFw]; }
+  function rowKey(fw, id) { return fw + '::' + id; }
+
+  function storageKey(fw) { return 'control-register:' + fw; }
+
+  function loadState(fw) {
+    try {
+      const raw = localStorage.getItem(storageKey(fw));
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveState(fw, state) {
+    try { localStorage.setItem(storageKey(fw), JSON.stringify(state)); } catch (e) {}
+  }
+
+  function getEntry(fw, id) {
+    const state = loadState(fw);
+    return state[id] || { status: 'not-started', notes: '', evidence: '', reviewed: '' };
+  }
+  function setEntry(fw, id, patch) {
+    const state = loadState(fw);
+    state[id] = Object.assign({ status: 'not-started', notes: '', evidence: '', reviewed: '' }, state[id] || {}, patch);
+    saveState(fw, state);
+    return state[id];
+  }
+
+  function statusLabel(s) {
+    return { 'not-started': 'Not started', 'in-progress': 'In progress', 'implemented': 'Implemented', 'not-applicable': 'Not applicable' }[s] || s;
+  }
+
+  function allItems() {
+    const items = [];
+    activeFws().forEach(function(fw) {
+      DATA[fw].controls.forEach(function(c) { items.push({ fw: fw, control: c }); });
+    });
+    return items;
+  }
+
+  function groupOf(item) { return blendMode ? item.control.domain : item.control.theme; }
+
+  function renderFwBar() {
+    const bar = document.getElementById('fwBar');
+    bar.innerHTML = '';
+    FW_KEYS.forEach(function(key) {
+      const btn = document.createElement('button');
+      const isActive = blendMode ? blendFws.indexOf(key) !== -1 : key === currentFw;
+      btn.className = 'fw-tab' + (isActive ? ' active' : '');
+      btn.textContent = DATA[key].name;
+      btn.type = 'button';
+      btn.addEventListener('click', function() {
+        if (blendMode) {
+          if (blendFws.indexOf(key) !== -1) {
+            if (blendFws.length > 1) blendFws = blendFws.filter(function(k) { return k !== key; });
+          } else {
+            blendFws.push(key);
+          }
+        } else {
+          currentFw = key;
+        }
+        currentGroupFilter = '';
+        currentSearch = '';
+        currentStatusFilter = '';
+        document.getElementById('search').value = '';
+        document.getElementById('statusFilter').value = '';
+        openRow = null;
+        renderAll();
+      });
+      bar.appendChild(btn);
+    });
+    const blendBtn = document.createElement('button');
+    blendBtn.className = 'theme-toggle';
+    blendBtn.style.marginLeft = 'auto';
+    blendBtn.type = 'button';
+    blendBtn.textContent = blendMode ? '✓ Blending frameworks' : '🔀 Blend frameworks';
+    blendBtn.addEventListener('click', function() {
+      blendMode = !blendMode;
+      if (blendMode && blendFws.length === 0) blendFws = FW_KEYS.slice();
+      currentGroupFilter = ''; currentSearch = ''; currentStatusFilter = ''; openRow = null;
+      document.getElementById('search').value = '';
+      document.getElementById('statusFilter').value = '';
+      renderAll();
+    });
+    bar.appendChild(blendBtn);
+  }
+
+  function renderDash() {
+    const items = allItems();
+    const counts = { 'not-started': 0, 'in-progress': 0, 'implemented': 0, 'not-applicable': 0 };
+    items.forEach(function(item) {
+      const entry = getEntry(item.fw, item.control.id);
+      counts[entry.status]++;
+    });
+    const total = items.length;
+    const applicable = total - counts['not-applicable'];
+    const pct = applicable > 0 ? Math.round((counts['implemented'] / applicable) * 100) : 0;
+    const dash = document.getElementById('dash');
+    dash.innerHTML =
+      '<div class="dash-cell met"><span class="num">' + pct + '%</span><span class="lbl">Implemented</span></div>' +
+      '<div class="dash-cell"><span class="num">' + counts['in-progress'] + '</span><span class="lbl">In progress</span></div>' +
+      '<div class="dash-cell gap"><span class="num">' + counts['not-started'] + '</span><span class="lbl">Not started</span></div>' +
+      '<div class="dash-cell"><span class="num">' + total + '</span><span class="lbl">' + (blendMode ? 'Blended controls' : 'Total controls') + '</span></div>';
+  }
+
+  function renderThemeRail() {
+    const items = allItems();
+    const groups = [];
+    items.forEach(function(item) { const g = groupOf(item); if (groups.indexOf(g) === -1) groups.push(g); });
+    groups.sort();
+    const rail = document.getElementById('themeRail');
+    rail.innerHTML = '';
+    const allChip = document.createElement('button');
+    allChip.className = 'theme-chip' + (currentGroupFilter === '' ? ' active' : '');
+    allChip.textContent = blendMode ? 'All domains' : 'All domains';
+    allChip.type = 'button';
+    allChip.addEventListener('click', function() { currentGroupFilter = ''; renderRegister(); renderThemeRail(); });
+    rail.appendChild(allChip);
+    groups.forEach(function(g) {
+      const chip = document.createElement('button');
+      chip.className = 'theme-chip' + (currentGroupFilter === g ? ' active' : '');
+      chip.textContent = g;
+      chip.type = 'button';
+      chip.addEventListener('click', function() { currentGroupFilter = g; renderRegister(); renderThemeRail(); });
+      rail.appendChild(chip);
+    });
+  }
+
+  function matches(item) {
+    if (currentGroupFilter && groupOf(item) !== currentGroupFilter) return false;
+    const entry = getEntry(item.fw, item.control.id);
+    if (currentStatusFilter && entry.status !== currentStatusFilter) return false;
+    if (currentSearch) {
+      const q = currentSearch.toLowerCase();
+      const c = item.control;
+      if (c.id.toLowerCase().indexOf(q) === -1 && c.title.toLowerCase().indexOf(q) === -1) return false;
+    }
+    return true;
+  }
+
+  function renderRegister() {
+    const items = allItems().filter(matches);
+    const wrap = document.getElementById('register');
+    wrap.innerHTML = '';
+    if (items.length === 0) {
+      const empty = document.createElement('p');
+      empty.style.color = 'var(--steel)';
+      empty.style.padding = '24px 4px';
+      empty.textContent = 'No controls match this filter.';
+      wrap.appendChild(empty);
+      return;
+    }
+    items.forEach(function(item) {
+      const c = item.control, fw = item.fw;
+      const key = rowKey(fw, c.id);
+      const entry = getEntry(fw, c.id);
+      const row = document.createElement('div');
+      row.className = 'row ' + entry.status + (openRow === key ? ' open' : '');
+      const badge = blendMode ? '<span class="fw-badge ' + fw + '">' + FW_BADGE[fw] + '</span>' : '';
+      const groupLabel = blendMode ? c.domain : c.theme;
+      row.innerHTML =
+        '<div class="cid">' + c.id + '</div>' +
+        '<div class="ctitle">' + badge + c.title + '<span class="theme-label">' + groupLabel + '</span></div>' +
+        '<div class="status-pill ' + entry.status + '">' + statusLabel(entry.status) + '</div>' +
+        '<div class="chev">›</div>';
+      row.addEventListener('click', function() {
+        openRow = (openRow === key) ? null : key;
+        renderRegister();
+      });
+      wrap.appendChild(row);
+
+      const detail = document.createElement('div');
+      detail.className = 'detail' + (openRow === key ? ' open' : '');
+      if (openRow === key) {
+        detail.innerHTML = buildDetailHtml(c, entry, fw);
+      }
+      wrap.appendChild(detail);
+      if (openRow === key) wireDetail(detail, fw, c.id);
+    });
+  }
+
+  function buildDetailHtml(c, entry, fw) {
+    return '<div class="detail-inner">' +
+      (blendMode ? '<p style="font-size:11.5px;color:var(--steel);margin:-2px 0 8px;">' + DATA[fw].name + '</p>' : '') +
+      '<p class="desc">' + c.desc + '</p>' +
+      '<p class="guidance">' + c.guidance + '</p>' +
+      '<div class="field-row">' +
+        '<div class="field"><label>Status</label>' +
+          '<select data-field="status">' +
+            ['not-started','in-progress','implemented','not-applicable'].map(function(s) {
+              return '<option value="' + s + '"' + (entry.status === s ? ' selected' : '') + '>' + statusLabel(s) + '</option>';
+            }).join('') +
+          '</select>' +
+        '</div>' +
+        '<div class="field"><label>Last reviewed</label>' +
+          '<input type="date" data-field="reviewed" value="' + (entry.reviewed || '') + '">' +
+        '</div>' +
+      '</div>' +
+      '<div class="field" style="margin-bottom:14px;">' +
+        '<label>Notes</label>' +
+        '<textarea data-field="notes" placeholder="What did you find? What still needs to happen?">' + escapeHtml(entry.notes || '') + '</textarea>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>Evidence (links, file names, ticket refs)</label>' +
+        '<textarea data-field="evidence" placeholder="e.g. policy doc link, screenshot filename, ticket #">' + escapeHtml(entry.evidence || '') + '</textarea>' +
+      '</div>' +
+      '<span class="saved-tick" data-tick>Saved</span>' +
+    '</div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function wireDetail(detail, fw, id) {
+    const tick = detail.querySelector('[data-tick]');
+    function showTick() {
+      tick.classList.add('show');
+      setTimeout(function() { tick.classList.remove('show'); }, 900);
+    }
+    detail.querySelectorAll('[data-field]').forEach(function(el) {
+      const evt = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
+      el.addEventListener(evt, function() {
+        const field = el.getAttribute('data-field');
+        const patch = {};
+        patch[field] = el.value;
+        setEntry(fw, id, patch);
+        showTick();
+        if (field === 'status') { renderDash(); renderRegister(); }
+      });
+      el.addEventListener('click', function(e) { e.stopPropagation(); });
+    });
+    detail.addEventListener('click', function(e) { e.stopPropagation(); });
+  }
+
+  function toCsv() {
+    const items = allItems();
+    const rows = [['Framework','ID','Domain','Title','Status','Last Reviewed','Notes','Evidence']];
+    items.forEach(function(item) {
+      const c = item.control, fw = item.fw;
+      const e = getEntry(fw, c.id);
+      rows.push([DATA[fw].name, c.id, blendMode ? c.domain : c.theme, c.title, statusLabel(e.status), e.reviewed || '', e.notes || '', e.evidence || '']);
+    });
+    return rows.map(function(r) {
+      return r.map(function(v) {
+        const s = String(v).replace(/"/g, '""');
+        return '"' + s + '"';
+      }).join(',');
+    }).join('\n');
+  }
+
+  document.getElementById('exportCsv').addEventListener('click', function() {
+    const csv = toCsv();
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (blendMode ? 'blended-audit' : currentFw) + '-export.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('printReport').addEventListener('click', function() {
+    const items = allItems().filter(matches);
+    const wrap = document.getElementById('register');
+    wrap.innerHTML = '';
+    items.forEach(function(item) {
+      const c = item.control, fw = item.fw;
+      const entry = getEntry(fw, c.id);
+      const row = document.createElement('div');
+      row.className = 'row ' + entry.status;
+      const badge = blendMode ? '<span class="fw-badge ' + fw + '">' + FW_BADGE[fw] + '</span>' : '';
+      row.innerHTML =
+        '<div class="cid">' + c.id + '</div>' +
+        '<div class="ctitle">' + badge + c.title + '<span class="theme-label">' + (blendMode ? c.domain : c.theme) + '</span></div>' +
+        '<div class="status-pill ' + entry.status + '">' + statusLabel(entry.status) + '</div><div></div>';
+      wrap.appendChild(row);
+      const detail = document.createElement('div');
+      detail.className = 'detail open';
+      detail.innerHTML = '<div class="detail-inner">' +
+        (blendMode ? '<p style="font-size:11.5px;color:var(--steel);">' + DATA[fw].name + '</p>' : '') +
+        '<p class="desc">' + c.desc + '</p>' +
+        '<p style="font-size:12.5px;"><strong>Notes:</strong> ' + escapeHtml(entry.notes || '—') + '</p>' +
+        '<p style="font-size:12.5px;"><strong>Evidence:</strong> ' + escapeHtml(entry.evidence || '—') + '</p>' +
+        '<p style="font-size:12.5px;"><strong>Last reviewed:</strong> ' + (entry.reviewed || '—') + '</p></div>';
+      wrap.appendChild(detail);
+    });
+    window.print();
+    setTimeout(function() { openRow = null; renderRegister(); }, 300);
+  });
+
+  document.getElementById('search').addEventListener('input', function(e) {
+    currentSearch = e.target.value;
+    renderRegister();
+  });
+  document.getElementById('statusFilter').addEventListener('change', function(e) {
+    currentStatusFilter = e.target.value;
+    renderRegister();
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    const root = document.documentElement;
+    const current = root.getAttribute('data-theme');
+    if (current === 'dark') { root.setAttribute('data-theme', 'light'); this.textContent = 'Dark mode'; }
+    else { root.setAttribute('data-theme', 'dark'); this.textContent = 'Light mode'; }
+  });
+
+  const BACKUP_PREFIXES = ['control-register:', 'grc-doc:', 'grc-template:'];
+  const BACKUP_EXACT_KEYS = ['grc-fieldguide-progress'];
+
+  function collectBackup() {
+    const data = {};
+    Object.keys(localStorage).forEach(function(k) {
+      const matchesPrefix = BACKUP_PREFIXES.some(function(p) { return k.indexOf(p) === 0; });
+      if (matchesPrefix || BACKUP_EXACT_KEYS.indexOf(k) !== -1) {
+        data[k] = localStorage.getItem(k);
+      }
+    });
+    return { app: 'control-register', exportedAt: new Date().toISOString(), data: data };
+  }
+
+  document.getElementById('backupBtn').addEventListener('click', function() {
+    const backup = collectBackup();
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'control-register-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('restoreBtn').addEventListener('click', function() {
+    document.getElementById('restoreFile').click();
+  });
+
+  document.getElementById('restoreFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!confirm('Restoring will overwrite any current data in this browser with the contents of the backup file. Continue?')) {
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function() {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const data = parsed && parsed.data ? parsed.data : parsed;
+        Object.keys(data).forEach(function(k) { localStorage.setItem(k, data[k]); });
+        alert('Backup restored. Reloading…');
+        location.reload();
+      } catch (err) {
+        alert("Couldn't read that file — make sure it's a backup exported from this tool.");
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  function renderAll() {
+    renderFwBar();
+    renderDash();
+    renderThemeRail();
+    renderRegister();
+  }
+
+  renderAll();
+
+  document.getElementById('pageNav').addEventListener('click', function(e) {
+    const btn = e.target.closest('button[data-page]');
+    if (!btn) return;
+    const page = btn.getAttribute('data-page');
+    const pages = ['register', 'builder', 'fieldguide'];
+    document.querySelectorAll('#pageNav button').forEach(function(b) { b.classList.toggle('active', b === btn); });
+    pages.forEach(function(p) { document.getElementById('page-' + p).style.display = (p === page) ? '' : 'none'; });
+    if (page === 'builder' && window.GRCBuilder) window.GRCBuilder.init();
+    if (page === 'fieldguide' && window.GRCFieldGuide) window.GRCFieldGuide.init();
+  });
+})();
+</script>
+<script>
+(function() {
+  const DOC_TYPES = [
+    {
+      id: 'sec-policy', name: 'Information Security Policy', tag: 'ISO 27001 · Clause 5.2',
+      description: 'A top-level policy statement establishing security objectives, scope, and responsibilities.',
+      sections: [
+        { id: 'overview', title: 'Overview', fields: [
+          { id: 'orgName', label: 'Organization name', type: 'text' },
+          { id: 'effectiveDate', label: 'Effective date', type: 'date' },
+          { id: 'policyOwner', label: 'Policy owner (role or name)', type: 'text' },
+          { id: 'approvedBy', label: 'Approved by', type: 'text' }
+        ]},
+        { id: 'purpose-scope', title: 'Purpose & Scope', fields: [
+          { id: 'purpose', label: 'Why does this policy exist?', type: 'textarea' },
+          { id: 'scope', label: 'Who and what does it cover?', type: 'textarea' }
+        ]},
+        { id: 'statement', title: 'Policy Statement', fields: [
+          { id: 'statement', label: "What are the organization's core security commitments?", type: 'textarea' }
+        ]},
+        { id: 'roles', title: 'Roles & Responsibilities', fields: [
+          { id: 'rolesTable', label: 'Who is responsible for what?', type: 'table', columns: [
+            { id: 'role', label: 'Role' }, { id: 'responsibility', label: 'Responsibility' }
+          ]}
+        ]},
+        { id: 'compliance', title: 'Compliance & Exceptions', fields: [
+          { id: 'complianceText', label: 'How is compliance with this policy checked?', type: 'textarea' },
+          { id: 'exceptionProcess', label: 'How can someone request an exception?', type: 'textarea' }
+        ]},
+        { id: 'review', title: 'Review', fields: [
+          { id: 'reviewCycle', label: 'Review cycle', type: 'select', options: ['Annually', 'Every 2 years', 'Ad hoc'] },
+          { id: 'nextReviewDate', label: 'Next review date', type: 'date' }
+        ]}
+      ],
+      template: "# {{orgName}} — Information Security Policy\n\n**Effective date:** {{effectiveDate}}  \n**Policy owner:** {{policyOwner}}  \n**Approved by:** {{approvedBy}}\n\n## 1. Purpose\n{{purpose}}\n\n## 2. Scope\n{{scope}}\n\n## 3. Policy Statement\n{{statement}}\n\n## 4. Roles & Responsibilities\n{{table:rolesTable}}\n\n## 5. Compliance & Exceptions\n{{complianceText}}\n\nException requests: {{exceptionProcess}}\n\n## 6. Review\nThis policy is reviewed {{reviewCycle}}. Next review date: {{nextReviewDate}}."
+    },
+    {
+      id: 'risk-register', name: 'Risk Assessment Register', tag: 'ISO 27001 · Clause 6.1 / ISO 27005',
+      description: 'Identify, rate, and document treatment decisions for information security risks.',
+      sections: [
+        { id: 'overview', title: 'Overview', fields: [
+          { id: 'assessmentScope', label: 'Scope of this assessment', type: 'textarea' },
+          { id: 'assessor', label: 'Assessed by', type: 'text' },
+          { id: 'assessmentDate', label: 'Date', type: 'date' }
+        ]},
+        { id: 'methodology', title: 'Methodology', fields: [
+          { id: 'likelihoodScale', label: 'Likelihood scale (e.g. 1=Rare … 5=Almost certain)', type: 'textarea' },
+          { id: 'impactScale', label: 'Impact scale (e.g. 1=Negligible … 5=Severe)', type: 'textarea' }
+        ]},
+        { id: 'risks', title: 'Risk Entries', fields: [
+          { id: 'risks', label: 'Add each identified risk', type: 'table', columns: [
+            { id: 'asset', label: 'Asset' }, { id: 'threat', label: 'Threat / Vulnerability' },
+            { id: 'likelihood', label: 'Likelihood (1-5)' }, { id: 'impact', label: 'Impact (1-5)' },
+            { id: 'controls', label: 'Existing Controls' }, { id: 'owner', label: 'Risk Owner' },
+            { id: 'treatment', label: 'Treatment', type: 'select', options: ['Accept', 'Mitigate', 'Transfer', 'Avoid'] }
+          ]}
+        ]},
+        { id: 'signoff', title: 'Sign-off', fields: [
+          { id: 'approvedBy', label: 'Approved by', type: 'text' },
+          { id: 'approvalDate', label: 'Approval date', type: 'date' }
+        ]}
+      ],
+      template: "# Risk Assessment Register\n\n**Scope:** {{assessmentScope}}  \n**Assessed by:** {{assessor}}  \n**Date:** {{assessmentDate}}\n\n## Methodology\n**Likelihood scale:** {{likelihoodScale}}  \n**Impact scale:** {{impactScale}}\n\n## Risk Entries\n{{table:risks}}\n\n## Sign-off\nApproved by {{approvedBy}} on {{approvalDate}}."
+    },
+    {
+      id: 'soa', name: 'Statement of Applicability', tag: 'ISO 27001 · Clause 6.1.3(d)', special: 'soa',
+      description: "Built from your Control Register — mark exclusions and justify them.",
+      sections: [
+        { id: 'overview', title: 'Overview', fields: [
+          { id: 'orgName', label: 'Organization name', type: 'text' },
+          { id: 'scopeStatement', label: 'ISMS scope statement', type: 'textarea' },
+          { id: 'approvedBy', label: 'Approved by', type: 'text' },
+          { id: 'approvalDate', label: 'Approval date', type: 'date' }
+        ]},
+        { id: 'controls', title: 'Control Applicability', special: 'soa-table' }
+      ],
+      template: "# {{orgName}} — Statement of Applicability\n\n**ISMS scope:** {{scopeStatement}}  \n**Approved by:** {{approvedBy}} on {{approvalDate}}\n\n## Annex A Control Applicability\n{{table:soaControls}}"
+    },
+    {
+      id: 'pia', name: 'Privacy Impact Assessment', tag: 'PIPEDA / TBS PIA',
+      description: 'Assess privacy risk before a new program, system, or process goes live.',
+      sections: [
+        { id: 'overview', title: 'Overview', fields: [
+          { id: 'projectName', label: 'Project / initiative name', type: 'text' },
+          { id: 'department', label: 'Department or team', type: 'text' },
+          { id: 'assessor', label: 'Assessed by', type: 'text' },
+          { id: 'date', label: 'Date', type: 'date' }
+        ]},
+        { id: 'description', title: 'Description', fields: [
+          { id: 'projectDescription', label: 'What is this project and why is it happening?', type: 'textarea' },
+          { id: 'dataElements', label: 'What personal information is involved?', type: 'textarea' }
+        ]},
+        { id: 'necessity', title: 'Necessity & Proportionality', fields: [
+          { id: 'necessity', label: 'Why is this information necessary, and is the amount collected proportionate?', type: 'textarea' }
+        ]},
+        { id: 'flows', title: 'Data Flows', fields: [
+          { id: 'flowsTable', label: 'Map how the data moves', type: 'table', columns: [
+            { id: 'source', label: 'Source' }, { id: 'purpose', label: 'Purpose' },
+            { id: 'recipient', label: 'Recipient' }, { id: 'retention', label: 'Retention Period' }
+          ]}
+        ]},
+        { id: 'risks', title: 'Risks & Mitigations', fields: [
+          { id: 'risksTable', label: 'Identify privacy risks and how they are addressed', type: 'table', columns: [
+            { id: 'risk', label: 'Risk' }, { id: 'likelihood', label: 'Likelihood' }, { id: 'mitigation', label: 'Mitigation' }
+          ]}
+        ]},
+        { id: 'signoff', title: 'Sign-off', fields: [
+          { id: 'signOff', label: 'Signed off by', type: 'text' },
+          { id: 'signOffDate', label: 'Date', type: 'date' }
+        ]}
+      ],
+      template: "# Privacy Impact Assessment — {{projectName}}\n\n**Department:** {{department}}  \n**Assessed by:** {{assessor}}  \n**Date:** {{date}}\n\n## Description\n{{projectDescription}}\n\n**Personal information involved:** {{dataElements}}\n\n## Necessity & Proportionality\n{{necessity}}\n\n## Data Flows\n{{table:flowsTable}}\n\n## Risks & Mitigations\n{{table:risksTable}}\n\n## Sign-off\nSigned off by {{signOff}} on {{signOffDate}}."
+    },
+    {
+      id: 'irp', name: 'Incident Response Plan', tag: 'ISO 27001 · Clause 5.24–5.28',
+      description: 'Define how your organization detects, contains, and recovers from incidents.',
+      sections: [
+        { id: 'overview', title: 'Overview', fields: [
+          { id: 'orgName', label: 'Organization name', type: 'text' },
+          { id: 'planOwner', label: 'Plan owner', type: 'text' },
+          { id: 'effectiveDate', label: 'Effective date', type: 'date' }
+        ]},
+        { id: 'roles', title: 'Roles', fields: [
+          { id: 'rolesTable', label: 'Incident response roles', type: 'table', columns: [
+            { id: 'role', label: 'Role' }, { id: 'person', label: 'Name / Position' }, { id: 'responsibility', label: 'Responsibility' }
+          ]}
+        ]},
+        { id: 'classification', title: 'Classification', fields: [
+          { id: 'severityTable', label: 'Severity levels', type: 'table', columns: [
+            { id: 'level', label: 'Severity' }, { id: 'desc', label: 'Description' }, { id: 'example', label: 'Example' }, { id: 'responseTime', label: 'Response Time' }
+          ]}
+        ]},
+        { id: 'procedure', title: 'Response Procedure', fields: [
+          { id: 'detection', label: 'Detection & reporting', type: 'textarea' },
+          { id: 'containment', label: 'Containment', type: 'textarea' },
+          { id: 'eradicationRecovery', label: 'Eradication & recovery', type: 'textarea' },
+          { id: 'communication', label: 'Communication plan', type: 'textarea' }
+        ]},
+        { id: 'post', title: 'Post-Incident', fields: [
+          { id: 'postIncident', label: 'Post-incident review process', type: 'textarea' }
+        ]}
+      ],
+      template: "# {{orgName}} — Incident Response Plan\n\n**Plan owner:** {{planOwner}}  \n**Effective date:** {{effectiveDate}}\n\n## Roles\n{{table:rolesTable}}\n\n## Classification\n{{table:severityTable}}\n\n## Response Procedure\n**Detection & reporting:** {{detection}}\n\n**Containment:** {{containment}}\n\n**Eradication & recovery:** {{eradicationRecovery}}\n\n**Communication plan:** {{communication}}\n\n## Post-Incident Review\n{{postIncident}}"
+    },
+    {
+      id: 'aup', name: 'Acceptable Use Policy', tag: 'ISO 27001 · Clause 5.10',
+      description: 'Set expectations for how staff use organizational systems and information.',
+      sections: [
+        { id: 'overview', title: 'Overview', fields: [
+          { id: 'orgName', label: 'Organization name', type: 'text' },
+          { id: 'effectiveDate', label: 'Effective date', type: 'date' },
+          { id: 'owner', label: 'Policy owner', type: 'text' }
+        ]},
+        { id: 'scope', title: 'Scope', fields: [
+          { id: 'scope', label: 'Who and what systems does this cover?', type: 'textarea' }
+        ]},
+        { id: 'acceptable', title: 'Acceptable Use', fields: [
+          { id: 'acceptableUse', label: 'What is staff expected to do?', type: 'textarea' }
+        ]},
+        { id: 'prohibited', title: 'Prohibited Use', fields: [
+          { id: 'prohibitedUse', label: 'What is explicitly not allowed?', type: 'textarea' }
+        ]},
+        { id: 'enforcement', title: 'Enforcement', fields: [
+          { id: 'enforcement', label: 'What happens if this policy is violated?', type: 'textarea' }
+        ]}
+      ],
+      template: "# {{orgName}} — Acceptable Use Policy\n\n**Effective date:** {{effectiveDate}}  \n**Policy owner:** {{owner}}\n\n## Scope\n{{scope}}\n\n## Acceptable Use\n{{acceptableUse}}\n\n## Prohibited Use\n{{prohibitedUse}}\n\n## Enforcement\n{{enforcement}}"
+    }
+  ];
+
+  let state = { view: 'grid', docType: null, sectionIndex: 0, mode: 'wizard' };
+
+  function docKey(id) { return 'grc-doc:' + id; }
+  function tplKey(id) { return 'grc-template:' + id; }
+
+  function loadAnswers(id) {
+    try { const raw = localStorage.getItem(docKey(id)); return raw ? JSON.parse(raw).answers || {} : {}; } catch (e) { return {}; }
+  }
+  function saveAnswers(id, answers) {
+    try { localStorage.setItem(docKey(id), JSON.stringify({ answers: answers, updated: new Date().toISOString() })); } catch (e) {}
+  }
+  function loadMeta(id) {
+    try { const raw = localStorage.getItem(docKey(id)); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  }
+  function loadTemplate(dt) {
+    try { const raw = localStorage.getItem(tplKey(dt.id)); return raw !== null ? raw : dt.template; } catch (e) { return dt.template; }
+  }
+  function saveTemplate(id, text) { try { localStorage.setItem(tplKey(id), text); } catch (e) {} }
+  function resetTemplate(id) { try { localStorage.removeItem(tplKey(id)); } catch (e) {} }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function mdEscape(s) { return String(s == null ? '' : s).replace(/\|/g, '\\|').replace(/\n/g, ' '); }
+
+  function tableToMarkdown(columns, rows) {
+    if (!rows || rows.length === 0) return '_(none recorded)_';
+    const header = '| ' + columns.map(function(c) { return c.label; }).join(' | ') + ' |';
+    const sep = '| ' + columns.map(function() { return '---'; }).join(' | ') + ' |';
+    const body = rows.map(function(r) {
+      return '| ' + columns.map(function(c) { return mdEscape(r[c.id] || ''); }).join(' | ') + ' |';
+    }).join('\n');
+    return header + '\n' + sep + '\n' + body;
+  }
+
+  function riskTableToMarkdown(rows) {
+    const cols = [
+      { id: 'asset', label: 'Asset' }, { id: 'threat', label: 'Threat / Vulnerability' },
+      { id: 'likelihood', label: 'Likelihood' }, { id: 'impact', label: 'Impact' },
+      { id: 'score', label: 'Score' }, { id: 'level', label: 'Level' },
+      { id: 'controls', label: 'Existing Controls' }, { id: 'owner', label: 'Owner' }, { id: 'treatment', label: 'Treatment' }
+    ];
+    const enriched = (rows || []).map(function(r) {
+      const l = parseFloat(r.likelihood) || 0, i = parseFloat(r.impact) || 0;
+      const score = l * i;
+      const level = score >= 15 ? 'High' : score >= 8 ? 'Medium' : (score > 0 ? 'Low' : '');
+      return Object.assign({}, r, { score: score || '', level: level });
+    });
+    return tableToMarkdown(cols, enriched);
+  }
+
+  function getSoaControlData() {
+    let controls = [];
+    try {
+      const dataScript = document.getElementById('framework-data');
+      const DATA = JSON.parse(dataScript.textContent);
+      controls = DATA.iso27001.controls;
+    } catch (e) { controls = []; }
+    let regState = {};
+    try { regState = JSON.parse(localStorage.getItem('control-register:iso27001') || '{}'); } catch (e) {}
+    return { controls: controls, regState: regState };
+  }
+
+  function soaTableToMarkdown(answers) {
+    const { controls, regState } = getSoaControlData();
+    const overrides = answers.soaOverrides || {};
+    const cols = [
+      { id: 'id', label: 'ID' }, { id: 'title', label: 'Control' }, { id: 'applicable', label: 'Applicable' },
+      { id: 'status', label: 'Implementation Status' }, { id: 'justification', label: 'Justification' }
+    ];
+    const rows = controls.map(function(c) {
+      const ov = overrides[c.id] || {};
+      const regEntry = regState[c.id] || {};
+      const applicable = ov.applicable || (regEntry.status === 'not-applicable' ? 'no' : 'yes');
+      const justification = ov.justification || (regEntry.status === 'not-applicable' ? (regEntry.notes || '') : '');
+      return {
+        id: c.id, title: c.title,
+        applicable: applicable === 'no' ? 'No' : 'Yes',
+        status: applicable === 'no' ? 'Excluded' : (({ 'not-started': 'Not started', 'in-progress': 'In progress', 'implemented': 'Implemented' })[regEntry.status] || 'Not started'),
+        justification: applicable === 'no' ? (justification || '_(justification needed)_') : ''
+      };
+    });
+    return tableToMarkdown(cols, rows);
+  }
+
+  function compile(dt, answers) {
+    let tpl = loadTemplate(dt);
+    tpl = tpl.replace(/\{\{table:(\w+)\}\}/g, function(_, fieldId) {
+      if (dt.special === 'soa' && fieldId === 'soaControls') return soaTableToMarkdown(answers);
+      if (dt.id === 'risk-register' && fieldId === 'risks') return riskTableToMarkdown((answers[fieldId] || {}).rows || answers[fieldId] || []);
+      const field = dt.sections.reduce(function(acc, s) { return acc || s.fields && s.fields.find(function(f) { return f.id === fieldId; }); }, null);
+      const rows = (answers[fieldId] || {}).rows || answers[fieldId] || [];
+      const columns = field ? field.columns : [];
+      return tableToMarkdown(columns || [], rows);
+    });
+    tpl = tpl.replace(/\{\{(\w+)\}\}/g, function(_, key) {
+      const v = answers[key];
+      return (v === undefined || v === null || v === '') ? '_(not provided)_' : esc(v).replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+    });
+    return tpl;
+  }
+
+  function mdToHtml(md) {
+    const lines = md.split('\n');
+    let html = ''; let i = 0; let inTable = false; let tableRows = [];
+    function flushTable() {
+      if (!tableRows.length) return;
+      const header = tableRows[0];
+      const body = tableRows.slice(2);
+      html += '<table><thead><tr>' + header.map(function(h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>';
+      body.forEach(function(r) { html += '<tr>' + r.map(function(c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; });
+      html += '</tbody></table>';
+      tableRows = []; inTable = false;
+    }
+    for (i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      if (/^\|/.test(line)) {
+        inTable = true;
+        tableRows.push(line.trim().replace(/^\||\|$/g, '').split('|').map(function(c) { return c.trim(); }));
+        continue;
+      } else if (inTable) { flushTable(); }
+      line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      if (/^# /.test(line)) html += '<h1>' + line.slice(2) + '</h1>';
+      else if (/^## /.test(line)) html += '<h2>' + line.slice(3) + '</h2>';
+      else if (line.trim() === '') html += '';
+      else html += '<p>' + line + '</p>';
+    }
+    if (inTable) flushTable();
+    return html;
+  }
+
+  function render() {
+    const root = document.getElementById('page-builder');
+    if (state.view === 'grid') { root.innerHTML = renderGrid(); wireGrid(); }
+    else if (state.view === 'wizard') { root.innerHTML = renderWizard(); wireWizard(); }
+    else if (state.view === 'preview') { root.innerHTML = renderPreview(); wirePreview(); }
+  }
+
+  function renderGrid() {
+    let html = '<div class="doctype-grid">';
+    DOC_TYPES.forEach(function(dt) {
+      const meta = loadMeta(dt.id);
+      html += '<div class="doctype-card" data-id="' + dt.id + '">' +
+        '<span class="dt-tag">' + dt.tag + '</span>' +
+        '<h3>' + dt.name + '</h3>' +
+        '<p>' + dt.description + '</p>' +
+        (meta ? '<span class="dt-status">Draft saved — continue</span>' : '') +
+        '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function wireGrid() {
+    document.querySelectorAll('.doctype-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        const dt = DOC_TYPES.find(function(d) { return d.id === card.getAttribute('data-id'); });
+        state.docType = dt; state.sectionIndex = 0; state.view = 'wizard';
+        render();
+      });
+    });
+  }
+
+  function fieldValue(answers, fieldId, sub) {
+    if (sub) return ((answers[fieldId] || {})[sub]);
+    return answers[fieldId];
+  }
+
+  function renderFieldRows(rows, columns) {
+    return (rows || []).map(function(r, idx) {
+      return '<tr data-row="' + idx + '">' + columns.map(function(c) {
+        if (c.type === 'select') {
+          return '<td><select data-col="' + c.id + '">' + c.options.map(function(o) {
+            return '<option' + (r[c.id] === o ? ' selected' : '') + '>' + o + '</option>';
+          }).join('') + '</select></td>';
+        }
+        return '<td><input type="text" data-col="' + c.id + '" value="' + esc(r[c.id] || '') + '"></td>';
+      }).join('') + '<td><button class="rm-row" data-row="' + idx + '" type="button">×</button></td></tr>';
+    }).join('');
+  }
+
+  function renderWizard() {
+    const dt = state.docType;
+    const section = dt.sections[state.sectionIndex];
+    const answers = loadAnswers(dt.id);
+    const total = dt.sections.length;
+    let fieldsHtml = '';
+
+    if (section.special === 'soa-table') {
+      const { controls, regState } = getSoaControlData();
+      const overrides = answers.soaOverrides || {};
+      fieldsHtml += '<p style="font-size:12.5px;color:var(--steel);margin-bottom:12px;">Pulled from your Control Register. Mark a control ' +
+        '<strong>No</strong> to exclude it and give a justification — everything else is included by default.</p>';
+      fieldsHtml += '<div class="soa-table-wrap" id="soaWrap">';
+      controls.forEach(function(c) {
+        const ov = overrides[c.id] || {};
+        const regEntry = regState[c.id] || {};
+        const applicable = ov.applicable || (regEntry.status === 'not-applicable' ? 'no' : 'yes');
+        const justification = ov.justification !== undefined ? ov.justification : (regEntry.status === 'not-applicable' ? (regEntry.notes || '') : '');
+        fieldsHtml += '<div class="soa-row" data-cid="' + c.id + '">' +
+          '<div class="soa-id">' + c.id + '</div>' +
+          '<div class="soa-title">' + c.title + '</div>' +
+          '<select data-soa-applicable>' +
+            '<option value="yes"' + (applicable === 'yes' ? ' selected' : '') + '>Yes</option>' +
+            '<option value="no"' + (applicable === 'no' ? ' selected' : '') + '>No</option>' +
+          '</select>' +
+          '<textarea data-soa-justification placeholder="Justification (if excluded)" style="' + (applicable === 'no' ? '' : 'visibility:hidden;') + '">' + esc(justification) + '</textarea>' +
+        '</div>';
+      });
+      fieldsHtml += '</div>';
+    } else {
+      section.fields.forEach(function(f) {
+        fieldsHtml += '<div class="w-field" data-field="' + f.id + '">';
+        fieldsHtml += '<label>' + f.label + '</label>';
+        if (f.type === 'textarea') {
+          fieldsHtml += '<textarea data-answer="' + f.id + '">' + esc(answers[f.id] || '') + '</textarea>';
+        } else if (f.type === 'select') {
+          fieldsHtml += '<select data-answer="' + f.id + '">' + f.options.map(function(o) {
+            return '<option' + (answers[f.id] === o ? ' selected' : '') + '>' + o + '</option>';
+          }).join('') + '</select>';
+        } else if (f.type === 'date') {
+          fieldsHtml += '<input type="date" data-answer="' + f.id + '" value="' + esc(answers[f.id] || '') + '">';
+        } else if (f.type === 'table') {
+          const rows = (answers[f.id] || {}).rows || answers[f.id] || [];
+          fieldsHtml += '<table class="w-table" data-table="' + f.id + '"><thead><tr>' +
+            f.columns.map(function(c) { return '<th>' + c.label + '</th>'; }).join('') + '<th></th></tr></thead>' +
+            '<tbody>' + renderFieldRows(rows, f.columns) + '</tbody></table>' +
+            '<button class="w-add-row" data-add-row="' + f.id + '" type="button">+ Add row</button>';
+        } else {
+          fieldsHtml += '<input type="text" data-answer="' + f.id + '" value="' + esc(answers[f.id] || '') + '">';
+        }
+        fieldsHtml += '</div>';
+      });
+    }
+
+    return '<div class="wizard-head">' +
+      '<button class="back-link" id="backToGrid" type="button">‹ All documents</button>' +
+      '<h2>' + dt.name + '</h2>' +
+      '<div class="wizard-progress">Section ' + (state.sectionIndex + 1) + ' of ' + total + ' — ' + section.title + '</div>' +
+      '</div>' +
+      '<div class="wizard-bar"><div class="wizard-bar-fill" style="width:' + Math.round(((state.sectionIndex) / total) * 100) + '%"></div></div>' +
+      '<div class="wizard-section"><h3>' + section.title + '</h3>' + fieldsHtml + '</div>' +
+      '<div class="wizard-nav-buttons">' +
+        '<button class="btn-ghost" id="wizBack" type="button"' + (state.sectionIndex === 0 ? ' style="visibility:hidden;"' : '') + '>Back</button>' +
+        '<button class="btn-primary" id="wizNext" type="button">' + (state.sectionIndex === total - 1 ? 'Preview document' : 'Next') + '</button>' +
+      '</div>';
+  }
+
+  function currentAnswers() { return loadAnswers(state.docType.id); }
+
+  function wireWizard() {
+    const dt = state.docType;
+    document.getElementById('backToGrid').addEventListener('click', function() { state.view = 'grid'; render(); });
+
+    document.querySelectorAll('[data-answer]').forEach(function(el) {
+      const evt = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
+      el.addEventListener(evt, function() {
+        const answers = currentAnswers();
+        answers[el.getAttribute('data-answer')] = el.value;
+        saveAnswers(dt.id, answers);
+      });
+    });
+
+    document.querySelectorAll('[data-table]').forEach(function(tableEl) {
+      const fieldId = tableEl.getAttribute('data-table');
+      tableEl.querySelectorAll('input, select').forEach(function(cell) {
+        cell.addEventListener('input', syncTable);
+        cell.addEventListener('change', syncTable);
+      });
+      function syncTable() {
+        const answers = currentAnswers();
+        const rows = [];
+        tableEl.querySelectorAll('tbody tr').forEach(function(tr) {
+          const row = {};
+          tr.querySelectorAll('[data-col]').forEach(function(inp) { row[inp.getAttribute('data-col')] = inp.value; });
+          rows.push(row);
+        });
+        answers[fieldId] = rows;
+        saveAnswers(dt.id, answers);
+      }
+      tableEl.querySelectorAll('.rm-row').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const answers = currentAnswers();
+          const rows = (answers[fieldId] || []);
+          rows.splice(parseInt(btn.getAttribute('data-row'), 10), 1);
+          answers[fieldId] = rows;
+          saveAnswers(dt.id, answers);
+          render();
+        });
+      });
+    });
+
+    document.querySelectorAll('[data-add-row]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const fieldId = btn.getAttribute('data-add-row');
+        const answers = currentAnswers();
+        const rows = answers[fieldId] || [];
+        rows.push({});
+        answers[fieldId] = rows;
+        saveAnswers(dt.id, answers);
+        render();
+      });
+    });
+
+    const soaWrap = document.getElementById('soaWrap');
+    if (soaWrap) {
+      soaWrap.querySelectorAll('.soa-row').forEach(function(row) {
+        const cid = row.getAttribute('data-cid');
+        const sel = row.querySelector('[data-soa-applicable]');
+        const txt = row.querySelector('[data-soa-justification]');
+        sel.addEventListener('change', function() {
+          txt.style.visibility = sel.value === 'no' ? 'visible' : 'hidden';
+          const answers = currentAnswers();
+          answers.soaOverrides = answers.soaOverrides || {};
+          answers.soaOverrides[cid] = Object.assign({}, answers.soaOverrides[cid], { applicable: sel.value });
+          saveAnswers(dt.id, answers);
+        });
+        txt.addEventListener('input', function() {
+          const answers = currentAnswers();
+          answers.soaOverrides = answers.soaOverrides || {};
+          answers.soaOverrides[cid] = Object.assign({}, answers.soaOverrides[cid], { justification: txt.value });
+          saveAnswers(dt.id, answers);
+        });
+      });
+    }
+
+    document.getElementById('wizBack').addEventListener('click', function() {
+      state.sectionIndex = Math.max(0, state.sectionIndex - 1);
+      render();
+    });
+    document.getElementById('wizNext').addEventListener('click', function() {
+      if (state.sectionIndex < dt.sections.length - 1) { state.sectionIndex++; render(); }
+      else { state.view = 'preview'; render(); }
+    });
+  }
+
+  function renderPreview() {
+    const dt = state.docType;
+    const answers = currentAnswers();
+    const md = compile(dt, answers);
+    const html = mdToHtml(md);
+    return '<div class="wizard-head">' +
+      '<button class="back-link" id="backToWizard" type="button">‹ Edit answers</button>' +
+      '<h2>' + dt.name + ' — Preview</h2>' +
+      '</div>' +
+      '<div class="preview-toolbar">' +
+        '<button class="action secondary" id="editTemplate" type="button">Customize template</button>' +
+        '<button class="action secondary" id="copyMd" type="button">Copy as Markdown</button>' +
+        '<button class="action secondary" id="downloadMd" type="button">Download .md</button>' +
+        '<button class="action" id="printDoc" type="button">Print / Save as PDF</button>' +
+      '</div>' +
+      '<div class="doc-preview" id="docPreview">' + html + '</div>' +
+      '<div class="tpl-editor-wrap" id="tplEditorWrap" style="display:none;">' +
+        '<h3 style="font-family:\'Fraunces\',serif;">Template</h3>' +
+        '<p style="font-size:12.5px;color:var(--steel);">Edit the structure and wording below. Keep the tokens (in curly braces) where you want that answer to appear.</p>' +
+        '<div class="tpl-tokens">' + availableTokens(dt) + '</div>' +
+        '<textarea id="tplText">' + esc(loadTemplate(dt)) + '</textarea>' +
+        '<div class="wizard-nav-buttons" style="border-top:none;">' +
+          '<button class="btn-ghost" id="resetTpl" type="button">Reset to default</button>' +
+          '<button class="btn-primary" id="saveTpl" type="button">Save & re-render</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function availableTokens(dt) {
+    const tokens = [];
+    dt.sections.forEach(function(s) {
+      if (s.special === 'soa-table') { tokens.push('{{table:soaControls}}'); return; }
+      (s.fields || []).forEach(function(f) {
+        tokens.push(f.type === 'table' ? '{{table:' + f.id + '}}' : '{{' + f.id + '}}');
+      });
+    });
+    return tokens.map(function(t) { return '<span>' + t + '</span>'; }).join(' ');
+  }
+
+  function wirePreview() {
+    const dt = state.docType;
+    document.getElementById('backToWizard').addEventListener('click', function() {
+      state.view = 'wizard'; state.sectionIndex = dt.sections.length - 1; render();
+    });
+    document.getElementById('editTemplate').addEventListener('click', function() {
+      const wrap = document.getElementById('tplEditorWrap');
+      wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('saveTpl').addEventListener('click', function() {
+      saveTemplate(dt.id, document.getElementById('tplText').value);
+      render();
+    });
+    document.getElementById('resetTpl').addEventListener('click', function() {
+      resetTemplate(dt.id); render();
+    });
+    document.getElementById('copyMd').addEventListener('click', function() {
+      const md = compile(dt, currentAnswers());
+      navigator.clipboard && navigator.clipboard.writeText(md).catch(function(){});
+    });
+    document.getElementById('downloadMd').addEventListener('click', function() {
+      const md = compile(dt, currentAnswers());
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = dt.id + '.md';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+    document.getElementById('printDoc').addEventListener('click', function() { window.print(); });
+  }
+
+  window.GRCBuilder = { init: function() { render(); } };
+})();
+</script>
+<script>
+(function() {
+  const TOPICS = [
+    {
+      id: 'what-is-auditing', title: 'What Auditing Actually Is', teaser: 'Audit vs. assessment, and the three parties who can perform one.',
+      body: [
+        "An audit is an independent, evidence-based check of whether something meets a defined set of requirements. That's different from an assessment (a broader look at risk or maturity, not always against a fixed standard) and a review (informal, often self-directed, with no independence requirement).",
+        "Audits come in three flavors. A <strong>first-party</strong> audit is internal — your own organization checking itself, often to prepare for something bigger. A <strong>second-party</strong> audit is one your customer or a regulator performs on you. A <strong>third-party</strong> audit is performed by an independent, accredited body — this is what produces an ISO 27001 certificate.",
+        "Auditors also distinguish <strong>assurance</strong> work (forming an opinion on whether something is true or compliant) from <strong>consulting</strong> work (giving advice or building something). The two are usually kept separate — someone who designed a control shouldn't be the one certifying it works later, which is part of why segregation of duties exists as a control in its own right."
+      ],
+      quiz: [
+        { q: 'Which of these produces an ISO 27001 certificate?', options: ['First-party audit', 'Second-party audit', 'Third-party audit', 'Self-assessment'], correct: 2, explain: 'Only an accredited, independent third-party certification body can issue an ISO 27001 certificate.' },
+        { q: "Your own compliance team checks its controls before an external audit. What type of audit is this?", options: ['First-party', 'Second-party', 'Third-party', 'Statutory'], correct: 0, explain: 'Checking your own organization internally is a first-party (internal) audit.' },
+        { q: "Why shouldn't the person who designed a control also certify it's working?", options: ['It violates a law', 'It breaks independence / segregation of duties', 'It just takes too long', "It isn't required at all"], correct: 1, explain: 'Independence is core to assurance work — the same idea behind the Segregation of Duties control in your Register.' }
+      ]
+    },
+    {
+      id: 'control-basics', title: 'Control Basics: Design vs. Operating Effectiveness', teaser: 'Two different questions every control gets asked, plus the preventive/detective/corrective split.',
+      body: [
+        "Every control gets evaluated two different ways, and mixing them up is one of the most common beginner mistakes.",
+        "A <strong>design test</strong> asks: if this control were followed exactly as written, would it actually address the risk? You can fail a design test even if nobody has done anything wrong yet — the control itself might be poorly conceived.",
+        "An <strong>operating effectiveness test</strong> asks: is the control actually happening, consistently, in practice? A well-designed access review process that nobody has run in eight months fails on operating effectiveness, even though it would pass on design.",
+        "Controls are also usually classified as <strong>preventive</strong> (stops a bad thing from happening — MFA, firewalls), <strong>detective</strong> (notices a bad thing after the fact — logging, monitoring), or <strong>corrective</strong> (fixes things after detection — incident response, patching). A mature environment layers all three, because no single type catches everything."
+      ],
+      quiz: [
+        { q: 'A backup policy requires daily backups, but the last restore test was 14 months ago. This fails on:', options: ['Design', 'Operating effectiveness', 'Both', 'Neither'], correct: 1, explain: 'The policy itself may be fine (design) — the issue is whether it actually happens (operating effectiveness).' },
+        { q: 'MFA on a login screen is an example of a:', options: ['Detective control', 'Corrective control', 'Preventive control', 'Compensating control'], correct: 2, explain: 'MFA stops unauthorized access before it happens — preventive.' },
+        { q: 'Log monitoring that flags unusual login activity is best classified as:', options: ['Preventive', 'Detective', 'Corrective', 'Administrative'], correct: 1, explain: "Monitoring notices something after it's already happened — detective." }
+      ]
+    },
+    {
+      id: 'evidence-sampling', title: 'Evidence & Sampling', teaser: 'The evidence hierarchy, and how auditors choose what to sample.',
+      body: [
+        "Not all evidence carries the same weight. From weakest to strongest: <strong>inquiry</strong> (someone tells you it happens) is weakest on its own; <strong>observation</strong> (you watch it happen once) is stronger but only proves a single instance; <strong>inspection</strong> (you review documents, logs, or configurations) is stronger still because it's independently verifiable; <strong>re-performance</strong> (you redo the control yourself and get the same result) is strongest, because it doesn't rely on anyone's account at all.",
+        "Good evidence is rarely a single interview. A notes field that says 'IT confirmed backups run daily' is weak; one that says 'reviewed backup logs for the last 90 days — 88/90 successful, two failures investigated and resolved' is strong.",
+        "For controls that happen often, like access provisioning, auditors sample rather than check every instance — a handful of transactions chosen to cover different systems, requesters, and time periods, rather than all clustered in one month."
+      ],
+      quiz: [
+        { q: 'Which type of evidence is generally considered strongest?', options: ['Inquiry', 'Observation', 'Inspection', 'Re-performance'], correct: 3, explain: "Re-performance doesn't rely on anyone's account — you get the same result independently." },
+        { q: "'The IT manager told me access reviews happen quarterly' is an example of:", options: ['Re-performance', 'Inquiry', 'Inspection', 'Corroboration'], correct: 1, explain: 'An unverified statement is inquiry — the weakest form on its own.' },
+        { q: 'When sampling provisioning tickets across a year, what should you avoid?', options: ['Choosing samples from only one month', 'Including different systems', 'Including different requesters', 'Documenting your sample method'], correct: 0, explain: 'Clustering samples in one period can miss issues that only show up at other times.' }
+      ]
+    },
+    {
+      id: 'writing-findings', title: 'Writing a Finding', teaser: "The 5 C's — Condition, Criteria, Cause, Effect, Recommendation — with a worked example.",
+      body: [
+        "A finding isn't just 'this is broken.' A well-written one has five parts: <strong>Condition</strong> (what you observed), <strong>Criteria</strong> (the standard or policy it should have met), <strong>Cause</strong> (why the gap exists, if known), <strong>Effect</strong> (the risk or impact that results), and <strong>Recommendation</strong> (what should change).",
+        "Weak: 'Backups aren't being tested.'",
+        "Strong: 'Condition — no restore test in 14 months. Criteria — policy requires quarterly testing. Cause — no owner assigned after a staff departure. Effect — undetected backup failures could mean unrecoverable data loss during an incident. Recommendation — assign restore-test ownership and schedule the next test within 30 days.'",
+        "The strong version survives management pushback because it's specific, ties back to a stated requirement, and gives something actionable — rather than sounding like an opinion."
+      ],
+      quiz: [
+        { q: "In the 5 C's, 'Criteria' refers to:", options: ['What you observed', 'The standard or requirement that should have been met', 'Why the problem happened', 'The fix being suggested'], correct: 1 },
+        { q: 'Which part of a finding explains the risk if nothing changes?', options: ['Condition', 'Cause', 'Effect', 'Recommendation'], correct: 2 },
+        { q: "'Backups aren't being tested' is weak mainly because it's missing:", options: ['A recommendation only', 'Specificity, a stated criteria, and impact', 'Correct grammar', 'A finding ID number'], correct: 1 }
+      ]
+    },
+    {
+      id: 'doc-hierarchy', title: 'The Documentation Hierarchy', teaser: 'Policy, Standard, Procedure, Guideline, Record — and where each one ends.',
+      body: [
+        "GRC documentation follows a pyramid, and mixing up the levels is a common source of confusion — and of findings in its own right.",
+        "A <strong>Policy</strong> sits at the top — a short, management-approved statement of intent. It rarely changes and says <em>what</em>, not <em>how</em>.",
+        "A <strong>Standard</strong> sets specific, measurable requirements that support a policy (e.g. 'passwords must be at least 14 characters'). More detailed than a policy, still not step-by-step.",
+        "A <strong>Procedure</strong> (or SOP) is the step-by-step <em>how</em> — the exact clicks, approvals, and order someone follows to meet the standard.",
+        "A <strong>Guideline</strong> is optional, recommended practice — helpful but not mandatory.",
+        "A <strong>Record</strong> is the evidence a procedure was actually followed — a completed checklist, an approval email, a signed form.",
+        "The Document Builder's templates map onto this: an Information Security Policy sits at the top; a Risk Register or Incident Response Plan sits closer to procedure level."
+      ],
+      quiz: [
+        { q: "'Passwords must be 14+ characters, rotated every 180 days' is an example of a:", options: ['Policy', 'Standard', 'Procedure', 'Guideline'], correct: 1 },
+        { q: 'Which level of documentation is mandatory to follow, not just recommended?', options: ['Guideline only', 'Standard and Procedure', 'Record only', 'None of them'], correct: 1 },
+        { q: 'A signed access-request form proving access was approved is a:', options: ['Policy', 'Standard', 'Procedure', 'Record'], correct: 3 }
+      ]
+    },
+    {
+      id: 'iso-basics', title: 'ISO 27001 Management System Basics', teaser: 'Annex A is the smaller part — the PDCA cycle in clauses 4–10 is the rest.',
+      body: [
+        "ISO 27001 doesn't just list controls — Annex A is actually the smaller part. Clauses 4 through 10 define the management system that runs around those controls, built on the Plan-Do-Check-Act (PDCA) cycle.",
+        "<strong>Plan</strong> (clauses 4–6): understand the organization's context, define scope, identify risks, and select controls — this is where the Statement of Applicability comes from.",
+        "<strong>Do</strong> (clauses 7–8): put resources, competence, and the selected controls into operation.",
+        "<strong>Check</strong> (clause 9): monitor, internally audit, and hold a management review to see if it's actually working.",
+        "<strong>Act</strong> (clause 10): fix nonconformities and continually improve.",
+        "This is why an ISO 27001 audit never just checks Annex A controls in isolation — an auditor also checks whether you're running the PDCA cycle itself: risk assessments, an internal audit program, management review minutes — not just firewalls and policies."
+      ],
+      quiz: [
+        { q: 'Which clause range does the Statement of Applicability come from?', options: ['Clause 4', 'Clauses 4–6 (Plan)', 'Clause 9', 'Clause 10'], correct: 1 },
+        { q: 'Management review and internal audit belong to which part of PDCA?', options: ['Plan', 'Do', 'Check', 'Act'], correct: 2 },
+        { q: 'True or false: an ISO 27001 auditor only checks Annex A controls.', options: ['True', 'False'], correct: 1, explain: 'They also check the management system clauses — risk assessment, internal audit, management review, and continual improvement.' }
+      ]
+    },
+    {
+      id: 'soa-reading', title: 'Reading a Statement of Applicability', teaser: 'Why "Not Applicable" is not the same thing as "not done yet."',
+      body: [
+        "A Statement of Applicability (SoA) is one of the most scrutinized documents in an ISO 27001 assessment, because it's the bridge between your risk assessment and your actual control set. For every Annex A control it records: whether it's applicable, whether it's implemented, and — critically — a justification for anything marked not applicable.",
+        "'Not applicable' is not the same as 'not done yet.' An auditor expects a real justification tied to your context — excluding teleworking controls because the organization has no remote staff is legitimate; excluding vulnerability management because 'we haven't gotten to it' is not an exclusion at all — that's a gap, and belongs on the register as an open finding, not a No in the applicability column.",
+        "This is exactly what the Document Builder's SoA generator enforces: it only asks for a justification when a control is marked No, because that's the only place one is actually required."
+      ],
+      quiz: [
+        { q: "In an SoA, what's required for every control marked 'Not Applicable'?", options: ['Nothing', 'A justification tied to your context', 'A cost estimate', "A staff member's name"], correct: 1 },
+        { q: 'Which is a legitimate reason to mark a control Not Applicable?', options: ["We haven't implemented it yet", 'We ran out of time before certification', "The control addresses a scenario that doesn't exist in this organization", 'The team disagrees with the control'], correct: 2 },
+        { q: "A control that should be implemented but isn't yet should be marked in the SoA as:", options: ['Not Applicable, no justification needed', 'Applicable, with an open/gap status', 'Deleted from the SoA', 'Excluded pending budget'], correct: 1 }
+      ]
+    }
+  ];
+
+  function progKey() { return 'grc-fieldguide-progress'; }
+  function loadProgress() {
+    try { return JSON.parse(localStorage.getItem(progKey()) || '{}'); } catch (e) { return {}; }
+  }
+  function saveProgress(p) { try { localStorage.setItem(progKey(), JSON.stringify(p)); } catch (e) {} }
+
+  let currentTopicId = null;
+
+  function topicScore(topicId) {
+    const prog = loadProgress()[topicId];
+    if (!prog || !prog.checked) return null;
+    const checkedCount = Object.keys(prog.checked).length;
+    if (checkedCount === 0) return null;
+    const topic = TOPICS.find(function(t) { return t.id === topicId; });
+    let correct = 0;
+    Object.keys(prog.checked).forEach(function(qi) {
+      if (prog.answers[qi] === topic.quiz[qi].correct) correct++;
+    });
+    return { correct: correct, total: topic.quiz.length, attempted: checkedCount };
+  }
+
+  function overallProgress() {
+    let done = 0;
+    TOPICS.forEach(function(t) {
+      const s = topicScore(t.id);
+      if (s && s.attempted === t.quiz.length) done++;
+    });
+    return { done: done, total: TOPICS.length };
+  }
+
+  function render() {
+    if (currentTopicId) renderTopic(); else renderGrid();
+  }
+
+  function renderGrid() {
+    const overall = overallProgress();
+    let html = '<div class="wizard-head"><h2>Field Guide</h2></div>' +
+      '<p class="guide-intro">Short, practical primers on how auditors actually think — written for using this tool, not for passing a proctored exam. Each topic ends with a quick self-check.</p>' +
+      '<div class="guide-progress-bar"><div class="guide-progress-fill" style="width:' + Math.round((overall.done / overall.total) * 100) + '%"></div></div>' +
+      '<p style="font-size:11.5px;color:var(--steel);margin:6px 0 0;">' + overall.done + ' of ' + overall.total + ' topics completed</p>' +
+      '<div class="guide-grid">';
+    TOPICS.forEach(function(t, idx) {
+      const s = topicScore(t.id);
+      let statusHtml = '<span class="g-status">Not started</span>';
+      if (s) {
+        const cls = s.correct === s.total ? 'done' : 'partial';
+        statusHtml = '<span class="g-status ' + cls + '">' + s.correct + '/' + s.total + ' correct</span>';
+      }
+      html += '<div class="guide-card" data-id="' + t.id + '">' +
+        '<span class="g-num">' + String(idx + 1).padStart(2, '0') + '</span>' +
+        '<h3>' + t.title + '</h3>' +
+        '<p>' + t.teaser + '</p>' +
+        statusHtml +
+        '</div>';
+    });
+    html += '</div>';
+    document.getElementById('page-fieldguide').innerHTML = html;
+    document.querySelectorAll('.guide-card').forEach(function(card) {
+      card.addEventListener('click', function() { currentTopicId = card.getAttribute('data-id'); render(); });
+    });
+  }
+
+  function renderTopic() {
+    const topic = TOPICS.find(function(t) { return t.id === currentTopicId; });
+    const idx = TOPICS.indexOf(topic);
+    const prog = loadProgress();
+    const tProg = prog[topic.id] || { answers: {}, checked: {} };
+
+    let bodyHtml = topic.body.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+
+    let quizHtml = '<div class="quiz-block"><h3>Self-check</h3>';
+    topic.quiz.forEach(function(q, qi) {
+      const checked = tProg.checked[qi];
+      const selected = tProg.answers[qi];
+      quizHtml += '<div class="quiz-q" data-qi="' + qi + '"><div class="q-text">' + (qi + 1) + '. ' + q.q + '</div>';
+      q.options.forEach(function(opt, oi) {
+        let cls = 'quiz-option';
+        if (checked !== undefined) {
+          if (oi === q.correct) cls += ' correct';
+          else if (oi === selected) cls += ' incorrect';
+        }
+        quizHtml += '<label class="' + cls + '"><input type="radio" name="q' + qi + '" value="' + oi + '"' + (selected === oi ? ' checked' : '') + (checked !== undefined ? ' disabled' : '') + '> ' + opt + '</label>';
+      });
+      if (checked === undefined) {
+        quizHtml += '<div><button class="quiz-check" data-qi="' + qi + '" type="button">Check answer</button></div>';
+      } else {
+        const isCorrect = selected === q.correct;
+        quizHtml += '<div class="quiz-feedback ' + (isCorrect ? 'correct' : 'incorrect') + '">' +
+          (isCorrect ? 'Correct. ' : 'Not quite. ') + (q.explain || '') + '</div>';
+      }
+      quizHtml += '</div>';
+    });
+    const score = topicScore(topic.id);
+    if (score && score.attempted === topic.quiz.length) {
+      quizHtml += '<div class="quiz-score">' + score.correct + ' of ' + score.total + ' correct.</div>';
+    }
+    quizHtml += '</div>';
+
+    const nextTopic = TOPICS[idx + 1];
+
+    document.getElementById('page-fieldguide').innerHTML =
+      '<div class="wizard-head">' +
+        '<button class="back-link" id="backToGuide" type="button">‹ Field Guide</button>' +
+        '<h2>' + topic.title + '</h2>' +
+      '</div>' +
+      '<div class="topic-body">' + bodyHtml + '</div>' +
+      quizHtml +
+      (nextTopic ? '<div class="wizard-nav-buttons" style="border-top:none;justify-content:flex-end;"><button class="btn-primary" id="nextTopic" type="button">Next: ' + nextTopic.title + '</button></div>' : '');
+
+    document.getElementById('backToGuide').addEventListener('click', function() { currentTopicId = null; render(); });
+    if (nextTopic) {
+      document.getElementById('nextTopic').addEventListener('click', function() { currentTopicId = nextTopic.id; render(); });
+    }
+    document.querySelectorAll('.quiz-check').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const qi = btn.getAttribute('data-qi');
+        const selectedInput = document.querySelector('input[name="q' + qi + '"]:checked');
+        if (!selectedInput) return;
+        const p = loadProgress();
+        p[topic.id] = p[topic.id] || { answers: {}, checked: {} };
+        p[topic.id].answers[qi] = parseInt(selectedInput.value, 10);
+        p[topic.id].checked[qi] = true;
+        saveProgress(p);
+        render();
+      });
+    });
+  }
+
+  window.GRCFieldGuide = { init: function() { render(); } };
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').catch(function() {});
+  });
+}
+</script>
+</body>
+</html>
